@@ -173,6 +173,111 @@ sequenceDiagram
 
 ## Update a property on a nested model
 
+### Resource state
+
+<table>
+  <tr>
+    <td><b>Resource Before</b></td>
+    <td><b>Request Body: Merge Patch JSON</b></td>
+    <td><b>Resource After</b></td>
+  </tr>
+  <tr>
+<td valign="top">
+
+```json
+{
+  "id": "123",
+  "firstName": "Alice",
+  "lastName": "Smith",
+  "address" : {
+    "street": "One Microsoft Way",
+    "city": "Redmond",
+    "state": "WA",
+    "zipCode": "98052"
+  }
+}
+```
+
+</td>
+<td valign="top">
+
+```json
+{
+  "address": {
+    "street": "15010 NE 36th St"
+  }
+}
+```
+
+</td>
+<td valign="top">
+
+```diff
+{
+  "id": "123",
+  "firstName": "Alice",
+  "lastName": "Smith",
+  "address" : {
+-    "street": "One Microsoft Way",
++    "street": "15010 NE 36th St",
+    "city": "Redmond",
+    "state": "WA",
+    "zipCode": "98052"
+  }
+}
+```
+
+</td>
+  </tr>
+</table>
+
+### C# code
+
+```csharp
+public class User
+{
+    public User(string id) { /****/ }
+    internal User(string id, string first, string last, Address address) { /****/ }
+
+    public string Id { get; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public Address Address { get; set; }
+}
+
+public class Address
+{
+    public User() { /****/ }
+    internal User(string street, string city, string state, string zip) { /****/ }
+
+    public string Street { get; set; }
+    public string City { get; set; }
+    public string State { get; set; }
+    public string ZipCode { get; set; }
+}
+
+User user = client.GetUser("123");
+user.Address.Street = "15010 NE 36th St";
+client.UpdateUser(user);
+```
+
+### HTTP traffic
+
+```mermaid
+sequenceDiagram
+    client->>service: GET /users/123
+    activate service
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource Before> }
+    client->>service: PATCH /users/123
+    activate service
+    Note right of client: { <Request Body> }
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource After> }
+```
+
 ## Replace a nested model
 
 ## Update a dictionary value
