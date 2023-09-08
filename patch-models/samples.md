@@ -17,7 +17,7 @@ It also shows the C# code you would write to achieve the change.
     <td><b>Resource After</b></td>
   </tr>
   <tr>
-<td>
+<td valign="top">
 
 ```json
 {
@@ -25,7 +25,7 @@ It also shows the C# code you would write to achieve the change.
 ```
 
 </td>
-<td>
+<td valign="top">
 
 ```json
 {
@@ -35,7 +35,7 @@ It also shows the C# code you would write to achieve the change.
 ```
 
 </td>
-<td>
+<td valign="top">
 
 ```diff
 {
