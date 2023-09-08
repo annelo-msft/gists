@@ -157,12 +157,16 @@ client.UpdateUser(user);
 ```mermaid
 sequenceDiagram
     client->>service: GET /users/123
+    activate service
     service->>client: 200 OK
+    deactivate service
     Note left of service: { <Resource Before> }
     client->>service: PATCH /users/123
+    activate service
     Note right of client: { <Request Body> }
     service->>client: 200 OK
     Note left of service: { <Resource After> }
+    deactivate service
 ```
 
 ## Update a property on a nested model
