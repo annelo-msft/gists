@@ -1,52 +1,86 @@
-## Code samples for JSON Merge Patch Proposal
+# Example cases for JSON Merge Patch Proposal
 
 The following illustrates how our implementation of .NET Patch models for JSON Merge Patch would affect resources on the service side.
 It shows the before/after of the resource representation on the service, alongside the HTTP request message sent to the service that caused the change.
 It also shows the C# code you would write to achieve the change.
 
-### Samples
+## Samples
 
-<details open>
-    <summary>Create a new resource</summary>
+### Create a new resource</summary>
 
-### C# Code
+#### Resource state
 
-```csharp
-Resource resource = new Resource("abc");
-resource.A = "aa";
-client.UpdateResource(resource);
+<table>
+  <tr>
+    <td><b>Resource Before</b></td>
+    <td><b>PATCH Body</b></td>
+    <td><b>Resource After</b></td>
+  </tr>
+  <tr>
+<td>
+
+```json
+{
+}
 ```
 
-</details>
+</td>
+<td>
 
-<details>
-    <summary>Update a top-level property</summary>
-</details>
+```json
+{
+  "firstName": "Alice", 
+  "lastName": "Smith"
+}
+```
 
-<details>
-    <summary>Update a property on a nested model</summary>
-</details>
+</td>
+<td>
 
-<details>
-    <summary>Replace a nested model</summary>
-</details>
+```diff
+{
++  "id": "123",
++  "firstName": "Alice", 
++  "lastName": "Smith"
+ } 
+```
 
-<details>
-    <summary>Update a dictionary value</summary>
-</details>
+</td>
+  </tr>
+</table>
 
-<details>
-    <summary>Clear a dictionary</summary>
-</details>
+#### C# code
 
-<details>
-    <summary>Update an array value - primitives</summary>
-</details>
+```csharp
+User user = new User("123");
+user.FirstName = "Alice";
+user.LastName = "Smith";
+client.UpdateUser(user);
+```
 
-<details>
-    <summary>Update an array value - objects</summary>
-</details>
+#### HTTP traffic
 
-<details>
-    <summary>Update an array using ETags</summary>
-</details>
+```mermaid
+sequenceDiagram
+    participant client
+    participant service
+    client->>server: PATCH /123
+    Note right of client: { /** see above **/ }
+    server-->>client: HTTP/1.1 200
+```
+
+### Update a top-level property</summary>
+
+### Update a property on a nested model</summary>
+
+### Replace a nested model</summary>
+
+### Update a dictionary value</summary>
+
+### Clear a dictionary</summary>
+
+### Update an array value - primitives</summary>
+
+### Update an array value - objects</summary>
+
+### Update an array using ETags</summary>
