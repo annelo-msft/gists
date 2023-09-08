@@ -103,3 +103,8 @@ sequenceDiagram
 ## Update an array value - objects
 
 ## Update an array using ETags
+
+## Related work
+
+- [.NET Patch Models Design Principles](https://gist.github.com/annelo-msft/ae16eda80b382cc3ae9428954c08e069)
+- [JSON Merge Patch Arch Board Issue](https://github.com/Azure/azure-sdk/issues/5966)
