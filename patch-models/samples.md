@@ -416,6 +416,156 @@ sequenceDiagram
     Note left of service: { <Resource After> }
 ```
 
+### C# code - alternate approach, Example 2
+
+```csharp
+// v1 client code - "safe" because user doesn't believe they're replacing Address
+User user = v1Client.GetUser("123");
+user.Address.Street = "One Microsoft Way";
+v1Client.UpdateUser(user);
+```
+
+### C# code - alternate approach, Example 3
+
+```csharp
+// v1 client code - "safe" because user is forced to delete the v2 Address completely before making an update
+User user = v1Client.GetUser("123");
+
+user.Address = null;
+v1Client.UpdateUser(user);
+
+user.Address = new Address() {
+    Street = "One Microsoft Way",
+    City = "Redmond",
+    State = "WA",
+    ZipCode = "98052"
+}
+```
+
+### Resource state
+
+<table>
+  <tr>
+    <td><b>Resource Before</b></td>
+    <td><b>Request Body: Merge Patch JSON</b></td>
+    <td><b>Resource After</b></td>
+  </tr>
+  <tr>
+<td valign="top">
+
+```json
+{
+  "id": "123",
+  "firstName": "Alice",
+  "lastName": "Smith",
+  "address" : {
+    "street": "54 State Street",
+    "streetLine2": "Suite 701",
+    "city": "Albany",
+    "state": "NY",
+    "zipCode": "12207"
+  }
+}
+```
+
+</td>
+<td valign="top">
+
+```json
+{
+  "address": null
+}
+```
+
+</td>
+<td valign="top">
+
+```diff
+{
+  "id": "123",
+  "firstName": "Alice",
+  "lastName": "Smith",
+-  "address" : {
+-    "street": "54 State Street",
+-    "streetLine2": "Suite 701",
+-    "city": "Albany",
+-    "state": "NY",
+-    "zipCode": "12207"
+-  }
+}
+```
+
+</td>
+  </tr>
+  <tr>
+<td valign="top">
+
+```json
+{
+  "id": "123",
+  "firstName": "Alice",
+  "lastName": "Smith"
+}
+```
+
+</td>
+<td valign="top">
+
+```json
+{
+  "address" : {
+    "street": "One Microsoft Way",
+    "city": "Redmond",
+    "state": "WA",
+    "zipCode": "98052"
+  }
+}
+```
+
+</td>
+<td valign="top">
+
+```diff
+{
+  "id": "123",
+  "firstName": "Alice",
+  "lastName": "Smith",
++  "address" : {
++    "street": "One Microsoft Way",
++    "city": "Redmond",
++    "state": "WA",
++    "zipCode": "98052"
+  }
+}
+```
+
+</td>
+  </tr>
+</table>
+
+### HTTP traffic
+
+```mermaid
+sequenceDiagram
+    client->>service: GET /users/123
+    activate service
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource Before - 1> }
+    client->>service: PATCH /users/123
+    activate service
+    Note right of client: { <Request Body - 1> }
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource After - 1> }
+    client->>service: PATCH /users/123
+    activate service
+    Note right of client: { <Request Body - 2> }
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource After - 2> }
+```
+
 ## Update a dictionary value
 
 ## Clear a dictionary
