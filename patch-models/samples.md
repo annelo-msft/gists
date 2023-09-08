@@ -442,7 +442,7 @@ user.Address = new Address() {
 }
 ```
 
-### Resource state
+### Resource state - Example 3
 
 <table>
   <tr>
