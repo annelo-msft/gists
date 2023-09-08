@@ -13,7 +13,7 @@ It also shows the C# code you would write to achieve the change.
 <table>
   <tr>
     <td><b>Resource Before</b></td>
-    <td><b>Patch Body</b></td>
+    <td><b>Patch Body: Merge Patch JSON</b></td>
     <td><b>Resource After</b></td>
   </tr>
   <tr>
