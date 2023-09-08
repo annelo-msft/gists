@@ -294,8 +294,7 @@ public class User
     public Address Address { get; set; }
 }
 
-// v1 Model
-
+// v1 model
 public class Address
 {
     public Address() { /****/ }
@@ -307,8 +306,7 @@ public class Address
     public string ZipCode { get; set; }
 }
 
-// v2 Model
-
+// v2 model
 public class Address
 {
     public Address() { /****/ }
@@ -316,7 +314,7 @@ public class Address
 
     public string Street { get; set; }
 
-    // Note: StreetLineTwo is added in v2
+    // Note: Added in v2!
     public string StreetLineTwo { get; set;}
 
     public string City { get; set; }
@@ -324,6 +322,7 @@ public class Address
     public string ZipCode { get; set; }
 }
 
+// v1 client code - results in "torn write" data integrity issue
 User user = v1Client.GetUser("123");
 user.Address = new Address() {
     Street = "One Microsoft Way",
@@ -352,7 +351,7 @@ v1Client.UpdateUser(user);
   "lastName": "Smith",
   "address" : {
     "street": "54 State Street",
-    "streetLine2": "7th Floor Suite 701",
+    "streetLine2": "Suite 701",
     "city": "Albany",
     "state": "NY",
     "zipCode": "12207"
@@ -385,7 +384,7 @@ v1Client.UpdateUser(user);
   "address" : {
 -    "street": "54 State Street",
 +    "street": "One Microsoft Way",
-    "streetLine2": "7th Floor Suite 701",
+    "streetLine2": "Suite 701",
 -    "city": "Albany",
 +    "city": "Redmond",
 -    "state": "NY",
