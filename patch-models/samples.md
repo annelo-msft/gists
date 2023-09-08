@@ -13,7 +13,7 @@ It also shows the C# code you would write to achieve the change.
 <table>
   <tr>
     <td><b>Resource Before</b></td>
-    <td><b>Patch Body: Merge Patch JSON</b></td>
+    <td><b>Request Body: Merge Patch JSON</b></td>
     <td><b>Resource After</b></td>
   </tr>
   <tr>
@@ -73,7 +73,7 @@ client.UpdateUser(user);
 ```mermaid
 sequenceDiagram
     client->>service: PATCH /users/123
-    Note right of client: { <Patch Body> }
+    Note right of client: { <Request Body> }
     service->>client: 200 OK
     Note left of service: { <Resource After> }
 ```
