@@ -6,7 +6,7 @@ It also shows the C# code you would write to achieve the change.
 
 ### Samples
 
-<details>
+<details open>
     <summary>Create a new resource</summary>
 
 ### C# Code
