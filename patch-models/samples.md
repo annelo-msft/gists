@@ -7,15 +7,15 @@ It also shows the C# code you would write to achieve the change.
 ### Samples
 
 <details>
-	<summary>Create a new resource</summary>
+     summary>Create a new resource</summary>
 
 ```mermaid
 sequenceDiagram
     participant client
     participant server
     Note left of client: "resource 1"
-    client->>server: GET /doc HTTP/1.1
-    Note right of client: <code>change <br> hi</code>
+    client->>server: PATCH https://example.com/resources/abc
+    Note right of client: <br> { <br> "a": "aa" <br> }
     Note right of server: "resource 2"
     server-->>client: HTTP/1.1 200
 ```
@@ -23,5 +23,33 @@ sequenceDiagram
 </details>
 
 <details>
-	<summary>Update a top-level value</summary>
+    <summary>Update a top-level property</summary>
+</details>
+
+<details>
+    <summary>Update a property on a nested model</summary>
+</details>
+
+<details>
+    <summary>Replace a nested model</summary>
+</details>
+
+<details>
+    <summary>Update a dictionary value</summary>
+</details>
+
+<details>
+    <summary>Clear a dictionary</summary>
+</details>
+
+<details>
+    <summary>Update an array value - primitives</summary>
+</details>
+
+<details>
+    <summary>Update an array value - objects</summary>
+</details>
+
+<details>
+    <summary>Update an array using ETags</summary>
 </details>
