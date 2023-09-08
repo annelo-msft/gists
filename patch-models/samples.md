@@ -1,7 +1,7 @@
 # Example cases for JSON Merge Patch Proposal
 
 The following illustrates how our implementation of .NET Patch models for JSON Merge Patch would affect resources on the service side.
-It shows the before/after of the resource representation on the service, alongside the HTTP request message sent to the service that caused the change.
+It shows the before/after of the resource representation on the service, alongside the HTTP request payload sent to the service that would cause the change.
 It also shows the C# code you would write to achieve the change.
 
 ## Samples
@@ -9,7 +9,7 @@ It also shows the C# code you would write to achieve the change.
 - [Create a new resource](#create-a-new-resource)
 - [Update a top-level property](#update-a-top-level-property)
 - [Update a property on a nested model](#update-a-property-on-a-nested-model)
-- [Replace a nested model](#replace-a-nested-model---torn-write-scenario)
+- [Replace a nested model - "Torn Write" scenario](#replace-a-nested-model---torn-write-scenario)
 - [Update a dictionary value](#update-a-dictionary-value)
 - [Clear a dictionary](#clear-a-dictionary)
 - [Update an array value - primitives](#update-an-array-value---primitives)
@@ -416,6 +416,12 @@ sequenceDiagram
     Note left of service: { <Resource After> }
 ```
 
+### Comments
+
+We can disallow setting a nested model property to anything but null.
+
+We can allow setting a nested model property to a new model if we have done a GET on a new value and the returned resource had a null or absent value for the nested model property.
+
 ### C# code - alternate approach, Example 2
 
 ```csharp
@@ -434,12 +440,14 @@ User user = v1Client.GetUser("123");
 user.Address = null;
 v1Client.UpdateUser(user);
 
+user = v1Client.GetUser("123");
 user.Address = new Address() {
     Street = "One Microsoft Way",
     City = "Redmond",
     State = "WA",
     ZipCode = "98052"
 }
+v1Client.UpdateUser(user);
 ```
 
 ### Resource state - Example 3
@@ -558,6 +566,11 @@ sequenceDiagram
     service->>client: 200 OK
     deactivate service
     Note left of service: { <Resource After - 1> }
+    client->>service: GET /users/123
+    activate service
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource Before - 2> }
     client->>service: PATCH /users/123
     activate service
     Note right of client: { <Request Body - 2> }
