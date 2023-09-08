@@ -52,6 +52,16 @@ It also shows the C# code you would write to achieve the change.
 #### C# code
 
 ```csharp
+public class User
+{
+    public User(string id) { /****/ }
+    internal User(string id, string first, string last) { /****/ }
+
+    public string Id { get; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+}
+
 User user = new User("123");
 user.FirstName = "Alice";
 user.LastName = "Smith";
