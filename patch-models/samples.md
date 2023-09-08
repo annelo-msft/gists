@@ -13,10 +13,8 @@ It also shows the C# code you would write to achieve the change.
 sequenceDiagram
     participant client
     participant server
-    Note left of client: "resource 1"
     client->>server: PATCH https://example.com/resources/abc
     Note right of client: "<br> { <br> "a": "aa" <br> }"
-    Note right of server: "resource 2"
     server-->>client: HTTP/1.1 200
 ```
 
