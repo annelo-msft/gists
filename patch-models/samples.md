@@ -72,7 +72,7 @@ client.UpdateUser(user);
 
 ```mermaid
 sequenceDiagram
-    client->>service: PATCH /123
+    client->>service: PATCH /users/123
     Note right of client: { <PATCH Body> }
     service->>client: 200 OK
     Note left of service: { <Resource After> }
