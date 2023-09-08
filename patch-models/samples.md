@@ -74,7 +74,7 @@ client.UpdateUser(user);
 sequenceDiagram
     client->>service: PATCH /123
     Note right of client: { <PATCH Body> }
-    server-->>client: 200 OK
+    service->>client: 200 OK
     Note left of service: { <Resource After> }
 ```
 
