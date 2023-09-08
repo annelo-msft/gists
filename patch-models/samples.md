@@ -72,10 +72,8 @@ client.UpdateUser(user);
 
 ```mermaid
 sequenceDiagram
-    participant client
-    participant service
     client->>server: PATCH /123
-    Note right of client: { /** see above **/ }
+    Note right of client: { /** BODY **/ }
     server-->>client: HTTP/1.1 200
 ```
 
