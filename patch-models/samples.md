@@ -6,15 +6,15 @@ It also shows the C# code you would write to achieve the change.
 
 ## Samples
 
-- [Create a new resource]()
-- [Update a top-level property]()
-- [Update a property on a nested model]()
-- [Replace a nested model]()
-- [Update a dictionary value]()
-- [Clear a dictionary]()
-- [Update an array value - primitives]()
-- [Update an array value - objects]()
-- [Update an array using ETags]()
+- [Create a new resource](#create-a-new-resource)
+- [Update a top-level property](#update-a-top-level-property)
+- [Update a property on a nested model](#update-a-property-on-a-nested-model)
+- [Replace a nested model](#replace-a-nested-model---torn-write-scenario)
+- [Update a dictionary value](#update-a-dictionary-value)
+- [Clear a dictionary](#clear-a-dictionary)
+- [Update an array value - primitives](#update-an-array-value---primitives)
+- [Update an array value - objects](#update-an-array-value---objects)
+- [Update an array using ETags](#update-an-array-using-etags)
 
 ## Create a new resource
 
