@@ -4,11 +4,9 @@ The following illustrates how our implementation of .NET Patch models for JSON M
 It shows the before/after of the resource representation on the service, alongside the HTTP request message sent to the service that caused the change.
 It also shows the C# code you would write to achieve the change.
 
-## Samples
+## Create a new resource
 
-### Create a new resource</summary>
-
-#### Resource state
+### Resource state
 
 <table>
   <tr>
@@ -49,7 +47,7 @@ It also shows the C# code you would write to achieve the change.
   </tr>
 </table>
 
-#### C# code
+### C# code
 
 ```csharp
 public class User
@@ -68,7 +66,7 @@ user.LastName = "Smith";
 client.UpdateUser(user);
 ```
 
-#### HTTP traffic
+### HTTP traffic
 
 ```mermaid
 sequenceDiagram
@@ -78,18 +76,18 @@ sequenceDiagram
     Note left of service: { <Resource After> }
 ```
 
-### Update a top-level property</summary>
+## Update a top-level property
 
-### Update a property on a nested model</summary>
+## Update a property on a nested model
 
-### Replace a nested model</summary>
+## Replace a nested model
 
-### Update a dictionary value</summary>
+## Update a dictionary value
 
-### Clear a dictionary</summary>
+## Clear a dictionary
 
-### Update an array value - primitives</summary>
+## Update an array value - primitives
 
-### Update an array value - objects</summary>
+## Update an array value - objects
 
-### Update an array using ETags</summary>
+## Update an array using ETags
