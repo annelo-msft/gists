@@ -10,14 +10,10 @@ It also shows the C# code you would write to achieve the change.
     <summary>Create a new resource</summary>
 
 ```mermaid
-sequenceDiagram
-    participant client
-    participant server
-    Note left of client: "resource 1"
-    client->>server: GET /doc HTTP/1.1    
-    Note right of client: "<change>"
-    Note right of server: "resource 2"
-    server-->>client: HTTP/1.1 200
+zenuml
+    Alice->John: Hello John, how are you?
+    John->Alice: Great!
+    Alice->John: See you later!
 ```
 
 </details>
