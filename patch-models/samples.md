@@ -72,9 +72,10 @@ client.UpdateUser(user);
 
 ```mermaid
 sequenceDiagram
-    client->>server: PATCH /123
-    Note right of client: { /** BODY **/ }
-    server-->>client: HTTP/1.1 200
+    client->>service: PATCH /123
+    Note right of client: { <PATCH Body> }
+    server-->>client: 200 OK
+    Note left of service: { <Resource After> }
 ```
 
 ### Update a top-level property</summary>
