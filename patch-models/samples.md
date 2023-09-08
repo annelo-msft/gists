@@ -90,6 +90,81 @@ sequenceDiagram
 
 ## Update a top-level property
 
+### Resource state
+
+<table>
+  <tr>
+    <td><b>Resource Before</b></td>
+    <td><b>Request Body: Merge Patch JSON</b></td>
+    <td><b>Resource After</b></td>
+  </tr>
+  <tr>
+<td valign="top">
+
+```json
+{
+  "id": "123",
+  "firstName": "Alice",
+  "lastName": "Smith"
+}
+```
+
+</td>
+<td valign="top">
+
+```json
+{
+  "lastName": "Jones"
+}
+```
+
+</td>
+<td valign="top">
+
+```diff
+{
+  "id": "123",
+  "firstName": "Alice", 
+-  "lastName": "Smith"
++  "lastName": "Jones"
+ } 
+```
+
+</td>
+  </tr>
+</table>
+
+### C# code
+
+```csharp
+public class User
+{
+    public User(string id) { /****/ }
+    internal User(string id, string first, string last) { /****/ }
+
+    public string Id { get; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+}
+
+User user = client.GetUser("123");
+user.LastName = "Jones";
+client.UpdateUser(user);
+```
+
+### HTTP traffic
+
+```mermaid
+sequenceDiagram
+    client->>service: GET /users/123
+    service->>client: 200 OK
+    Note left of service: { <Resource Before> }
+    client->>service: PATCH /users/123
+    Note right of client: { <Request Body> }
+    service->>client: 200 OK
+    Note left of service: { <Resource After> }
+```
+
 ## Update a property on a nested model
 
 ## Replace a nested model
@@ -106,5 +181,5 @@ sequenceDiagram
 
 ## Related work
 
-- [.NET Patch Models Design Principles](https://gist.github.com/annelo-msft/ae16eda80b382cc3ae9428954c08e069)
 - [JSON Merge Patch Arch Board Issue](https://github.com/Azure/azure-sdk/issues/5966)
+- [.NET Patch Models Design Principles](https://gist.github.com/annelo-msft/ae16eda80b382cc3ae9428954c08e069)
