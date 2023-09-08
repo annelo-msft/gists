@@ -551,7 +551,7 @@ v1Client.UpdateUser(user);
   </tr>
 </table>
 
-### HTTP traffic
+### HTTP traffic - Example 3
 
 ```mermaid
 sequenceDiagram
