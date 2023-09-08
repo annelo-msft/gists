@@ -9,17 +9,12 @@ It also shows the C# code you would write to achieve the change.
 <details>
     <summary>Create a new resource</summary>
 
-### header
+### C# Code
 
-```mermaid
-sequenceDiagram
-    participant client
-    participant server
-    Note left of client: "resource 1"
-    client->>server: GET /doc HTTP/1.1    
-    Note right of client: "<change>"
-    Note right of server: "resource 2"
-    server-->>client: HTTP/1.1 200
+```csharp
+Resource resource = new Resource("abc");
+resource.A = "aa";
+client.UpdateResource(resource);
 ```
 
 </details>
