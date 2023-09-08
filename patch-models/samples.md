@@ -165,8 +165,8 @@ sequenceDiagram
     activate service
     Note right of client: { <Request Body> }
     service->>client: 200 OK
-    Note left of service: { <Resource After> }
     deactivate service
+    Note left of service: { <Resource After> }
 ```
 
 ## Update a property on a nested model
