@@ -713,14 +713,163 @@ If a caller modifies an array value and doesn't send an ETag in the PATCH reques
 
 Note that if the array value in the `User` model is not modified, no exception will be thrown from the update method because the client did not try to send values that the user did not modify.
 
-For further details of conditional request semantics, see:
+For further details of conditional requests, see:
 
 - [If-Match](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match)
 - [Avoiding mid-air collisions](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/412#avoiding_mid-air_collisions)
 
 ## Update an array value - objects
 
-TBD
+
+### Resource state
+
+<table>
+  <tr>
+    <td><b>Resource Before</b></td>
+    <td><b>Request Body: Merge Patch JSON</b></td>
+    <td><b>Resource After</b></td>
+  </tr>
+  <tr>
+<td valign="top">
+
+```json
+{
+  "id": "123",
+  "ETag": "abc",
+  "channelId": "ChatChannel",
+  "priority": "2",
+  "selectors": [
+    {
+        "key": "A",
+        "expedite": false
+    },
+    {
+        "key": "B",
+        "expedite": false
+    },
+    {
+        "key": "C",
+        "expedite": false
+    }
+  ]
+}
+```
+
+</td>
+<td valign="top">
+
+```txt
+If-Match: "abc"
+```
+
+```json
+{
+  "selectors": [
+    {
+      "key": "A",
+      "expedite": true
+    },
+    {
+      "key": "B",
+      "expedite": false
+    },
+    {
+      "key": "C",
+      "expedite": false
+    }
+  ]
+}
+```
+
+</td>
+<td valign="top">
+
+```diff
+{
+  "id": "123",
+  "ETag": "abc",
+  "channelId": "ChatChannel",
+  "priority": "2",
+  "selectors": [
+    {
+        "key": "A",
+-        "expedite": false
++        "expedite": false
+    },
+    {
+        "key": "B",
+        "expedite": false
+    },
+    {
+        "key": "C",
+        "expedite": false
+    }
+  ]
+}
+```
+
+</td>
+  </tr>
+</table>
+
+### C# code
+
+```csharp
+using System.Net.Http;
+
+public class RouterJob
+{
+    public RouterJob(string id) { /****/ }
+    internal RouterJob(string id, string channelId, int priority, List<RouterWorkerSelector> selectors) { /****/ }
+
+    public string Id { get; }
+    public ETag ETag { get; set; }
+    public string ChannelId { get; set; }
+    public int Priority { get; set; }
+    public IList<RouterWorkerSelector> Selectors { get; }
+}
+
+public class RouterWorkerSelector
+{
+    public RouterWorkerSelector() { /****/ }
+    internal RouterWorkerSelector(string key, bool expedite) { /****/ }
+
+    public string Key { get; set; }
+    public bool Expedite { get; set; }
+}
+
+Response<RouterJob> response;
+
+do 
+{
+    RouterJob job = client.GetJob("123");
+    job.Selectors[0].Expedite = true;
+
+    response = client.UpdateJob(job, onlyIfUnchanged: true);
+}
+while (response.Status == HttpStatusCode.PreconditionFailed);
+```
+
+### HTTP traffic
+
+```mermaid
+sequenceDiagram
+    client->>service: GET /jobs/123
+    activate service
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: ETag="abc"<br>{ <Resource Before> }
+    client->>service: PATCH /jobs/123
+    activate service
+    Note right of client: If-Match="abc"<br>{ <Request Body> }
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: ETag="def"<br>{ <Resource After> }
+```
+
+### Comments
+
+Please see Comments section in [Update an array value - primitives](#update-an-array-value---primitives) section above.
 
 ## Related work
 
