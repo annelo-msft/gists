@@ -667,7 +667,8 @@ public class User
 
 User user = client.GetUser("123");
 user.Pets.Add("rizzo");
-client.UpdateUser(user, onlyIfChanged: true);
+
+client.UpdateUser(user, onlyIfUnchanged: true);
 ```
 
 ### HTTP traffic
@@ -695,8 +696,10 @@ In this instance, that principle results in the following developer experience.
 
 If a caller modifies an array value and doesn't send an ETag in the PATCH request, we will throw an exception with a message that says one of the following:
 
-1. If the service supports conditional requests, the message will direct the user to set the `If-Match` header on the PATCH request.  In the example above, this is accomplished by retrieving the resource value before updating it or setting the ETag property on the model manually.  Setting the optional `onlyIfChanged` parameter in the `UpdateUser` method adds the value of the ETag property from the model to the `If-Match` header on the request.
-1. If the service does not support conditional requests, the message will instruct the user to compose the PATCH JSON payload by hand and send it using the corresponding protocol method.  In this case, no `onlyIfChanged` parameter will be in the method signature of the update method, since the service does not support it.
+1. If the service supports conditional requests, the message will direct the user to set the `If-Match` header on the PATCH request.  In the example above, this is accomplished by retrieving the resource value before updating it or setting the ETag property on the model manually.  Setting the optional `onlyIfUnchanged` parameter in the `UpdateUser` method adds the value of the ETag property from the model to the `If-Match` header on the request.
+1. If the service does not support conditional requests, the message will instruct the user to compose the PATCH JSON payload by hand and send it using the corresponding protocol method.  In this case, no `onlyIfUnchanged` parameter will be in the method signature of the update method, since the service does not support it.
+
+Note that if the array value in the `User` model is not modified, no exception will be thrown from the update method because the client did not try to send values that the user did not modify.
 
 ## Update an array value - objects
 
