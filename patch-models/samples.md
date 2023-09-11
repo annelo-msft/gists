@@ -602,7 +602,10 @@ sequenceDiagram
   "ETag": "abc",
   "firstName": "Alice",
   "lastName": "Smith",
-  "pets": [ "statler", "waldorf" ]
+  "pets": [
+    "statler",
+    "waldorf"
+  ]
 }
 ```
 
@@ -615,7 +618,11 @@ If-Match: "abc"
 
 ```json
 {
-  "pets": [ "statler", "waldorf", "rizzo" ]
+  "pets": [
+    "statler",
+    "waldorf",
+    "rizzo"
+  ]
 }
 ```
 
@@ -627,9 +634,16 @@ If-Match: "abc"
   "id": "123",
   "ETag": "def",
   "firstName": "Alice", 
-  "lastName": "Smith"  
--  "pets": [ "statler", "waldorf" ]
-+  "pets": [ "statler", "waldorf", "rizzo" ]
+  "lastName": "Smith",
+-  "pets": [
+-    "statler",
+-    "waldorf"
++  ]
++  "pets": [
++    "statler",
++    "waldorf",
++    "rizzo"
++  ]
  } 
 ```
 
