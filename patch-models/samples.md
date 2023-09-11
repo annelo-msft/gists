@@ -671,12 +671,13 @@ public class User
     public IList<string> Pets { get; }
 }
 
-User user = client.GetUser("123");
-user.Pets.Add("rizzo");
-
 Response<User> response;
+
 do 
 {
+    User user = client.GetUser("123");
+    user.Pets.Add("rizzo");
+
     response = client.UpdateUser(user, onlyIfUnchanged: true);
 }
 while (response.Status == HttpStatusCode.PreconditionFailed);
