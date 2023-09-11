@@ -1,6 +1,6 @@
 # Example cases for JSON Merge Patch Proposal
 
-The following illustrates how our implementation of .NET Patch models for JSON Merge Patch would affect resources on the service side.
+The following illustrates how our implementation of .NET Patch models for [JSON Merge Patch](https://www.rfc-editor.org/rfc/rfc7396) would affect resources on the service side.
 It shows the before/after of the resource representation on the service, alongside the HTTP request payload sent to the service that would cause the change.
 It also shows the C# code you would write to achieve the change.
 
@@ -14,7 +14,6 @@ It also shows the C# code you would write to achieve the change.
 - [Clear a dictionary](#clear-a-dictionary)
 - [Update an array value - primitives](#update-an-array-value---primitives)
 - [Update an array value - objects](#update-an-array-value---objects)
-- [Update an array using ETags](#update-an-array-using-etags)
 
 ## Create a new resource
 
