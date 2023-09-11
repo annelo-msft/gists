@@ -639,15 +639,15 @@ If-Match: "abc"
 +  "ETag": "def",
   "firstName": "Alice", 
   "lastName": "Smith",
--  "pets": [
--    "statler",
--    "waldorf"
-+  ]
-+  "pets": [
-+    "statler",
-+    "waldorf",
-+    "rizzo"
-+  ]
+- "pets": [
+-   "statler",
+-   "waldorf"
++ ]
++ "pets": [
++   "statler",
++   "waldorf",
++   "rizzo"
++ ]
  } 
 ```
 
@@ -794,8 +794,8 @@ If-Match: "abc"
   "selectors": [
     {
         "key": "A",
--        "expedite": false
-+        "expedite": true
+-       "expedite": false
++       "expedite": true
     },
     {
         "key": "B",
