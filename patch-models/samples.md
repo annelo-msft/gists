@@ -580,7 +580,11 @@ sequenceDiagram
 
 ## Update a dictionary value
 
+TBD
+
 ## Clear a dictionary
+
+TBD
 
 ## Update an array value - primitives
 
@@ -653,6 +657,8 @@ If-Match: "abc"
 ### C# code
 
 ```csharp
+using System.Net.Http;
+
 public class User
 {
     public User(string id) { /****/ }
@@ -668,7 +674,12 @@ public class User
 User user = client.GetUser("123");
 user.Pets.Add("rizzo");
 
-client.UpdateUser(user, onlyIfUnchanged: true);
+Response<User> response;
+do 
+{
+    response = client.UpdateUser(user, onlyIfUnchanged: true);
+}
+while (response.Status == HttpStatusCode.PreconditionFailed);
 ```
 
 ### HTTP traffic
@@ -701,7 +712,14 @@ If a caller modifies an array value and doesn't send an ETag in the PATCH reques
 
 Note that if the array value in the `User` model is not modified, no exception will be thrown from the update method because the client did not try to send values that the user did not modify.
 
+For further details of conditional request semantics, see:
+
+- [If-Match](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match)
+- [Avoiding mid-air collisions](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/412#avoiding_mid-air_collisions)
+
 ## Update an array value - objects
+
+TBD
 
 ## Related work
 
