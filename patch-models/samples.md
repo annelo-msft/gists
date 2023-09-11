@@ -690,13 +690,14 @@ sequenceDiagram
 
 ### Comments
 
-We would like to follow the principle that if the Patch request body would contain values that the user did not modify in their application code, we should notify them of this somehow.  They should either use conditional requests to prevent unknowingly overwriting data on the server, or hand-author the request body to indicate that they understand the nuances of the JSON Merge Patch RFC.
+To help .NET users who may not have a deep understanding of the full details of the [JSON Merge Patch RFC](https://www.rfc-editor.org/rfc/rfc7396), we would like to apply the following principle.  If we need to send values in the Patch request body that the user did not explicitly modify in their application code, we should prevent accidental data loss from the result of sending these values.  Users should either use conditional requests to prevent unknowingly overwriting data on the server, or hand-author a request body to opt-in to the responsibility of handling nuances of the JSON Merge Patch RFC themselves.
 
 In this instance, that principle results in the following developer experience.
-If a caller modifies an array value and doesn't send an ETag, we will throw an exception will a message that says one of the following:
 
-1. If the service supports conditional requests, the message will direct the user to set `If-Match` header on the PATCH request.  In the example above, this is accomplished by retrieving the value and/or setting the ETag property on the model.  Setting the optional `onlyIfChanged` parameter in the `UpdateUser` method adds the value of the ETag property from the model to the `If-Match` header on the request.
-1. If the service does not support conditional requests, the message will direct the user to compose the PATCH JSON payload by hand using the corresponding protocol method.  In this case, no `onlyIfChanged` parameter will be in the method signature of the update method.
+If a caller modifies an array value and doesn't send an ETag in the PATCH request, we will throw an exception with a message that says one of the following:
+
+1. If the service supports conditional requests, the message will direct the user to set the `If-Match` header on the PATCH request.  In the example above, this is accomplished by retrieving the resource value before updating it or setting the ETag property on the model manually.  Setting the optional `onlyIfChanged` parameter in the `UpdateUser` method adds the value of the ETag property from the model to the `If-Match` header on the request.
+1. If the service does not support conditional requests, the message will instruct the user to compose the PATCH JSON payload by hand and send it using the corresponding protocol method.  In this case, no `onlyIfChanged` parameter will be in the method signature of the update method, since the service does not support it.
 
 ## Update an array value - objects
 
