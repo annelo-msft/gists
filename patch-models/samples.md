@@ -585,6 +585,95 @@ sequenceDiagram
 
 ## Update an array value - primitives
 
+### Resource state
+
+<table>
+  <tr>
+    <td><b>Resource Before</b></td>
+    <td><b>Request Body: Merge Patch JSON</b></td>
+    <td><b>Resource After</b></td>
+  </tr>
+  <tr>
+<td valign="top">
+
+```json
+{
+  "id": "123",
+  "ETag": "abc",
+  "firstName": "Alice",
+  "lastName": "Smith",
+  "pets": [ "statler", "waldorf" ]
+}
+```
+
+</td>
+<td valign="top">
+
+```txt
+If-Match: "abc"
+```
+
+```json
+{
+  "pets": [ "statler", "waldorf", "rizzo" ]
+}
+```
+
+</td>
+<td valign="top">
+
+```diff
+{
+  "id": "123",
+  "ETag": "def",
+  "firstName": "Alice", 
+  "lastName": "Smith"  
+-  "pets": [ "statler", "waldorf" ]
++  "pets": [ "statler", "waldorf", "rizzo" ]
+ } 
+```
+
+</td>
+  </tr>
+</table>
+
+### C# code
+
+```csharp
+public class User
+{
+    public User(string id) { /****/ }
+    internal User(string id, ETag eTag, string first, string last, IList<string> pets) { /****/ }
+
+    public string Id { get; }
+    public ETag ETag { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public IList<string> Pets { get; }
+}
+
+User user = client.GetUser("123");
+user.Pets.Add("rizzo");
+client.UpdateUser(user, onlyIfChanged: true);
+```
+
+### HTTP traffic
+
+```mermaid
+sequenceDiagram
+    client->>service: GET /users/123
+    activate service
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: ETag="abc"<br>{ <Resource Before> }
+    client->>service: PATCH /users/123
+    activate service
+    Note right of client: If-Match="abc"<br>{ <Request Body> }
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: ETag="def"<br>{ <Resource After> }
+```
+
 ## Update an array value - objects
 
 ## Update an array using ETags
