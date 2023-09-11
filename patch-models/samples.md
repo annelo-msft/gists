@@ -688,9 +688,17 @@ sequenceDiagram
     Note left of service: ETag="def"<br>{ <Resource After> }
 ```
 
-## Update an array value - objects
+### Comments
 
-## Update an array using ETags
+We would like to follow the principle that if the Patch request body would contain values that the user did not modify in their application code, we should notify them of this somehow.  They should either use conditional requests to prevent unknowingly overwriting data on the server, or hand-author the request body to indicate that they understand the nuances of the JSON Merge Patch RFC.
+
+In this instance, that principle results in the following developer experience.
+If a caller modifies an array value and doesn't send an ETag, we will throw an exception will a message that says one of the following:
+
+1. If the service supports conditional requests, the message will direct the user to set `If-Match` header on the PATCH request.  In the example above, this is accomplished by retrieving the value and/or setting the ETag property on the model.  Setting the optional `onlyIfChanged` parameter in the `UpdateUser` method adds the value of the ETag property from the model to the `If-Match` header on the request.
+1. If the service does not support conditional requests, the message will direct the user to compose the PATCH JSON payload by hand using the corresponding protocol method.  In this case, no `onlyIfChanged` parameter will be in the method signature of the update method.
+
+## Update an array value - objects
 
 ## Related work
 
