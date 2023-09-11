@@ -635,7 +635,8 @@ If-Match: "abc"
 ```diff
 {
   "id": "123",
-  "ETag": "def",
+-  "ETag": "abc",
++  "ETag": "def",
   "firstName": "Alice", 
   "lastName": "Smith",
 -  "pets": [
@@ -720,7 +721,6 @@ For further details of conditional requests, see:
 
 ## Update an array value - objects
 
-
 ### Resource state
 
 <table>
@@ -787,14 +787,15 @@ If-Match: "abc"
 ```diff
 {
   "id": "123",
-  "ETag": "abc",
+-  "ETag": "abc",
++  "ETag": "def",
   "channelId": "ChatChannel",
   "priority": "2",
   "selectors": [
     {
         "key": "A",
 -        "expedite": false
-+        "expedite": false
++        "expedite": true
     },
     {
         "key": "B",
@@ -869,7 +870,7 @@ sequenceDiagram
 
 ### Comments
 
-Please see Comments section in [Update an array value - primitives](#update-an-array-value---primitives) section above.
+Please see **Comments** section in [Update an array value - primitives](#update-an-array-value---primitives) section above.
 
 ## Related work
 
