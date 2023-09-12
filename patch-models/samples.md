@@ -788,6 +788,8 @@ sequenceDiagram
 
 This example illustrates how we would handle clearing a dictionary.  In this case, the dictionary is found on a service resource that has a property that is a JSON object with unnamed key-value pairs, which we would model as an `IDictionary` property in a .NET model.
 
+We discuss some challenges involved with this approach and propose a solution in the **Comments** section after the example.
+
 ### C# code
 
 <details>
@@ -903,7 +905,7 @@ sequenceDiagram
 
 Similar to the forward-compatibility issues described in example **Replace a nested model**, if a user wants to clear a dictionary, they need to ensure that every item in the dictionary is deleted.  If the dictionary has been modified since their last GET, there may be values in the dictionary that would not get deleted.
 
-We could address this by requiring the use of ETags with a Dictionary.Clear() operation, or allow it to happen without using ETags under the same principle of _users should know that someone else may have updated the resource and update without ETags at their own risk_ that guides us not to require ETags for updates to primitive properties.  Since the user may not understand how the model has implemented Dictionary.Clear, however, it would be safer to help the user by requiring them to either use an ETag or work at the protocol level as described in the **Update an array value - primitives** example below.
+We can address this by requiring the use of ETags with a `Dictionary.Clear` operation as described in the **Update an array value - primitives** example below.  Alternatively, we could allow users to do this under the principle that _users should know that someone else may have updated a resource since they last retrieved it and so they should use "update without ETags" at their own risk_.  This is the principle that guides us not to require ETags for updates to primitive properties.  However, since a user may not understand how our models have implemented `Dictionary.Clear`, it would be safer to help users prevent data integrity issues by requiring them to either use an ETag or work at the protocol level as described in the **Update an array value - primitives** example below.
 
 </details>
 
