@@ -663,13 +663,19 @@ sequenceDiagram
 
 </details>
 
-## Update a dictionary value
+<details>
+<summary><b>Update a dictionary value</b></summary>
 
 TBD
 
-## Clear a dictionary
+</details>
+
+<details>
+<summary><b>Clear a dictionary</b></summary>
 
 TBD
+
+</details>
 
 <details>
 <summary><b>Update an array value - primitives</b></summary>
