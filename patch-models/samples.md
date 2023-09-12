@@ -91,7 +91,8 @@ client.UpdateUser(user);
   </tr>
 </table>
 
-### HTTP traffic
+<details>
+<summary><b>HTTP traffic</b></summary>
 
 ```mermaid
 sequenceDiagram
@@ -102,6 +103,8 @@ sequenceDiagram
     deactivate service
     Note left of service: { <Resource After> }
 ```
+
+</details>
 
 ## Update a top-level property
 
