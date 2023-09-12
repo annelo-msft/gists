@@ -665,7 +665,7 @@ sequenceDiagram
 </details>
 
 <details>
-<summary><h3><b>5. Update a dictionary value</b></h3></summary>
+<summary><h3><b>5. Update values in a dictionary</b></h3></summary>
 
 This sample shows a basic example of how a user would update a dictionary value with PATCH.
 
@@ -764,6 +764,11 @@ client.UpdateUser(user);
 
 ```mermaid
 sequenceDiagram
+    client->>service: GET /users/123
+    activate service
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource Before> }
     client->>service: PATCH /users/123
     activate service
     Note right of client: { <Request Body> }
@@ -879,6 +884,11 @@ client.UpdateUser(user);
 
 ```mermaid
 sequenceDiagram
+    client->>service: GET /users/123
+    activate service
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource Before> }
     client->>service: PATCH /users/123
     activate service
     Note right of client: { <Request Body> }
