@@ -417,9 +417,18 @@ sequenceDiagram
 
 ### Comments
 
-We can disallow setting a nested model property to anything but null.
+Note that in the above example, if the `user.Address` property is set to a new model instance, the user might have the intention of overwriting the full value.  In a forward-compatibility scenario, if they are using an earlier version of the client, and a property was added to the `Address` model in a later version, they could end up in a "torn write" state, with compromised data integrity.
 
-We can allow setting a nested model property to a new model if we have done a GET on a new value and the returned resource had a null or absent value for the nested model property.
+To help .NET users who may not have a deep understanding of forward compatibility scenarios, we would like to apply the following principle: _if you would have to send multiple requests to achieve a desired resource state on the service, we will require that you send multiple requests to do this."
+
+In this case, that principle results in the following developer experience.
+
+If a caller tries to overwrite the value of a service resource that could have evolved across versions, the caller can only modify it as follows:
+
+1. They can set it to `null` to delete the resource.
+1. If they have retrieved the resource and the model they are holding in-memory confirms that the value is absent or has been deleted, they can set it to a new instance of the model.
+
+Overwriting a nested model that has a non-null value will result in an exception being thrown warning the caller about possible forward-compatibility data integrity issues.
 
 ### C# code - alternate approach, Example 2
 
