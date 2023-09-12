@@ -324,6 +324,9 @@ sequenceDiagram
 
 ### C# code
 
+<details>
+<summary><b>Model definitions</b></summary>
+
 ```csharp
 public class User
 {
@@ -363,7 +366,11 @@ public class Address
     public string State { get; set; }
     public string ZipCode { get; set; }
 }
+```
 
+</details>
+
+```csharp
 // v1 client code - results in "torn write" data integrity issue
 User user = v1Client.GetUser("123");
 user.Address = new Address() {
@@ -652,6 +659,9 @@ TBD
 
 ### C# code
 
+<details>
+<summary><b>Model definitions</b></summary>
+
 ```csharp
 using System.Net.Http;
 
@@ -666,6 +676,12 @@ public class User
     public string LastName { get; set; }
     public IList<string> Pets { get; }
 }
+```
+
+</details>
+
+```csharp
+using System.Net.Http;
 
 Response<User> response;
 
@@ -790,8 +806,10 @@ For further details of conditional requests, see:
 
 ### C# code
 
+<details>
+<summary><b>Model definitions</b></summary>
+
 ```csharp
-using System.Net.Http;
 
 public class RouterJob
 {
@@ -813,6 +831,12 @@ public class RouterWorkerSelector
     public string Key { get; set; }
     public bool Expedite { get; set; }
 }
+```
+
+</details>
+
+```csharp
+using System.Net.Http;
 
 Response<RouterJob> response;
 
