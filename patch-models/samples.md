@@ -22,7 +22,8 @@ These examples are part of the larger discussion of .NET Patch models, documente
 1. [Update an array value - primitives](#update-an-array-value---primitives)
 1. [Update an array value - objects](#update-an-array-value---objects)
 
-## Create a new resource
+<details>
+<summary><b>Create a new resource</b></summary>
 
 This sample shows a basic example of resource creation with PATCH.
 
@@ -107,6 +108,8 @@ sequenceDiagram
     deactivate service
     Note left of service: { <Resource After> }
 ```
+
+</details>
 
 </details>
 
