@@ -2,7 +2,7 @@
 
 The following examples describe the proposed implementation for .NET Patch models for [JSON Merge Patch](https://www.rfc-editor.org/rfc/rfc7396) operations in Azure services.
 
-Each section begins with a C# code sample, followed by an illustration of how the service-side resource would change as a result of the C# code.  These are followed by a brief diagram of HTTP traffic for completeness.
+Each section begins with a C# code sample, followed by an illustration of how the service-side resource would change as a result of the C# code.  These are followed by an expandable diagram of HTTP traffic for completeness.
 
 Most examples are complete, but some are discussions of tricky cases we want to handle in special ways.  Each section begins with a short description of which purpose they serve.
 
@@ -112,6 +112,9 @@ sequenceDiagram
 
 ### C# code
 
+<details>
+<summary><b>Model definitions</b></summary>
+
 ```csharp
 public class User
 {
@@ -122,7 +125,11 @@ public class User
     public string FirstName { get; set; }
     public string LastName { get; set; }
 }
+```
 
+</details>
+
+```csharp
 User user = client.GetUser("123");
 user.LastName = "Jones";
 client.UpdateUser(user);
@@ -172,7 +179,10 @@ client.UpdateUser(user);
   </tr>
 </table>
 
-### HTTP traffic
+<details>
+<summary><b>HTTP traffic</b></summary>
+
+(Please click the `<->` icon to see the diagram rendered correctly.)
 
 ```mermaid
 sequenceDiagram
@@ -189,9 +199,14 @@ sequenceDiagram
     Note left of service: { <Resource After> }
 ```
 
+</details>
+
 ## Update a property on a nested model
 
 ### C# code
+
+<details>
+<summary><b>Model definitions</b></summary>
 
 ```csharp
 public class User
@@ -215,7 +230,11 @@ public class Address
     public string State { get; set; }
     public string ZipCode { get; set; }
 }
+```
 
+</details>
+
+```csharp
 User user = client.GetUser("123");
 user.Address.Street = "15010 NE 36th St";
 client.UpdateUser(user);
@@ -279,7 +298,10 @@ client.UpdateUser(user);
   </tr>
 </table>
 
-### HTTP traffic
+<details>
+<summary><b>HTTP traffic</b></summary>
+
+(Please click the `<->` icon to see the diagram rendered correctly.)
 
 ```mermaid
 sequenceDiagram
@@ -295,6 +317,8 @@ sequenceDiagram
     deactivate service
     Note left of service: { <Resource After> }
 ```
+
+</details>
 
 ## Replace a nested model
 
@@ -417,7 +441,10 @@ v1Client.UpdateUser(user);
   </tr>
 </table>
 
-### HTTP traffic
+<details>
+<summary><b>HTTP traffic</b></summary>
+
+(Please click the `<->` icon to see the diagram rendered correctly.)
 
 ```mermaid
 sequenceDiagram
@@ -433,6 +460,8 @@ sequenceDiagram
     deactivate service
     Note left of service: { <Resource After> }
 ```
+
+</details>
 
 ### Comments
 
@@ -578,7 +607,10 @@ v1Client.UpdateUser(user);
   </tr>
 </table>
 
-### HTTP traffic - Example 3
+<details>
+<summary><b>HTTP traffic</b></summary>
+
+(Please click the `<->` icon to see the diagram rendered correctly.)
 
 ```mermaid
 sequenceDiagram
@@ -605,6 +637,8 @@ sequenceDiagram
     deactivate service
     Note left of service: { <Resource After - 2> }
 ```
+
+</details>
 
 ## Update a dictionary value
 
@@ -712,7 +746,10 @@ If-Match: "abc"
   </tr>
 </table>
 
-### HTTP traffic
+<details>
+<summary><b>HTTP traffic</b></summary>
+
+(Please click the `<->` icon to see the diagram rendered correctly.)
 
 ```mermaid
 sequenceDiagram
@@ -728,6 +765,8 @@ sequenceDiagram
     deactivate service
     Note left of service: ETag="def"<br>{ <Resource After> }
 ```
+
+</details>
 
 ### Comments
 
@@ -879,7 +918,10 @@ If-Match: "abc"
   </tr>
 </table>
 
-### HTTP traffic
+<details>
+<summary><b>HTTP traffic</b></summary>
+
+(Please click the `<->` icon to see the diagram rendered correctly.)
 
 ```mermaid
 sequenceDiagram
@@ -895,6 +937,8 @@ sequenceDiagram
     deactivate service
     Note left of service: ETag="def"<br>{ <Resource After> }
 ```
+
+</details>
 
 ### Comments
 
