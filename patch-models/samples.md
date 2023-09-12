@@ -14,7 +14,7 @@ These examples are part of the larger discussion of .NET Patch models, documente
 ## Examples
 
 <details>
-<summary><b>Create a new resource</b></summary>
+<summary><h2><b>Create a new resource</b></h2></summary>
 
 This sample shows a basic example of resource creation with PATCH.
 
