@@ -805,6 +805,7 @@ sequenceDiagram
     Note right of client: If-Match="abc"<br>{ <Request Body> }
     service->>client: 412 Precondition Failed
     deactivate service
+    Note left of service: ETag="xyz"
     client->>service: GET /users/123
     activate service
     service->>client: 200 OK
