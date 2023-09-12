@@ -1,10 +1,17 @@
 # Example cases for JSON Merge Patch Proposal
 
-The following illustrates how our implementation of .NET Patch models for [JSON Merge Patch](https://www.rfc-editor.org/rfc/rfc7396) would affect resources on the service side.
-It shows the before/after of the resource representation on the service, alongside the HTTP request payload sent to the service that would cause the change.
-It also shows the C# code you would write to achieve the change.
+The following examples describe the proposed implementation for .NET Patch models for [JSON Merge Patch](https://www.rfc-editor.org/rfc/rfc7396) operations in Azure services.
 
-## Samples
+Each section begins with a C# code sample, followed by an illustration of how the service-side resource would change as a result of the C# code.  These are followed by a brief diagram of HTTP traffic for completeness.
+
+Most examples are complete, but some are discussions of tricky cases we want to handle in special ways.  Each section begins with a short description of which purpose they serve.
+
+These examples are part of the larger discussion of .NET Patch models, documented in the following places:
+
+- [JSON Merge Patch arch board issue](https://github.com/Azure/azure-sdk/issues/5966)
+- [.NET Patch Models design principles](https://gist.github.com/annelo-msft/ae16eda80b382cc3ae9428954c08e069)
+
+## TOC of example cases
 
 - [Create a new resource](#create-a-new-resource)
 - [Update a top-level property](#update-a-top-level-property)
@@ -16,6 +23,25 @@ It also shows the C# code you would write to achieve the change.
 - [Update an array value - objects](#update-an-array-value---objects)
 
 ## Create a new resource
+
+### C# code
+
+```csharp
+public class User
+{
+    public User(string id) { /****/ }
+    internal User(string id, string first, string last) { /****/ }
+
+    public string Id { get; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+}
+
+User user = new User("123");
+user.FirstName = "Alice";
+user.LastName = "Smith";
+client.UpdateUser(user);
+```
 
 ### Resource state
 
@@ -58,25 +84,6 @@ It also shows the C# code you would write to achieve the change.
   </tr>
 </table>
 
-### C# code
-
-```csharp
-public class User
-{
-    public User(string id) { /****/ }
-    internal User(string id, string first, string last) { /****/ }
-
-    public string Id { get; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-}
-
-User user = new User("123");
-user.FirstName = "Alice";
-user.LastName = "Smith";
-client.UpdateUser(user);
-```
-
 ### HTTP traffic
 
 ```mermaid
@@ -90,6 +97,24 @@ sequenceDiagram
 ```
 
 ## Update a top-level property
+
+### C# code
+
+```csharp
+public class User
+{
+    public User(string id) { /****/ }
+    internal User(string id, string first, string last) { /****/ }
+
+    public string Id { get; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+}
+
+User user = client.GetUser("123");
+user.LastName = "Jones";
+client.UpdateUser(user);
+```
 
 ### Resource state
 
@@ -135,24 +160,6 @@ sequenceDiagram
   </tr>
 </table>
 
-### C# code
-
-```csharp
-public class User
-{
-    public User(string id) { /****/ }
-    internal User(string id, string first, string last) { /****/ }
-
-    public string Id { get; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-}
-
-User user = client.GetUser("123");
-user.LastName = "Jones";
-client.UpdateUser(user);
-```
-
 ### HTTP traffic
 
 ```mermaid
@@ -171,6 +178,36 @@ sequenceDiagram
 ```
 
 ## Update a property on a nested model
+
+### C# code
+
+```csharp
+public class User
+{
+    public User(string id) { /****/ }
+    internal User(string id, string first, string last, Address address) { /****/ }
+
+    public string Id { get; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public Address Address { get; set; }
+}
+
+public class Address
+{
+    public Address() { /****/ }
+    internal Address(string street, string city, string state, string zip) { /****/ }
+
+    public string Street { get; set; }
+    public string City { get; set; }
+    public string State { get; set; }
+    public string ZipCode { get; set; }
+}
+
+User user = client.GetUser("123");
+user.Address.Street = "15010 NE 36th St";
+client.UpdateUser(user);
+```
 
 ### Resource state
 
@@ -229,36 +266,6 @@ sequenceDiagram
 </td>
   </tr>
 </table>
-
-### C# code
-
-```csharp
-public class User
-{
-    public User(string id) { /****/ }
-    internal User(string id, string first, string last, Address address) { /****/ }
-
-    public string Id { get; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public Address Address { get; set; }
-}
-
-public class Address
-{
-    public Address() { /****/ }
-    internal Address(string street, string city, string state, string zip) { /****/ }
-
-    public string Street { get; set; }
-    public string City { get; set; }
-    public string State { get; set; }
-    public string ZipCode { get; set; }
-}
-
-User user = client.GetUser("123");
-user.Address.Street = "15010 NE 36th St";
-client.UpdateUser(user);
-```
 
 ### HTTP traffic
 
@@ -597,6 +604,35 @@ TBD
 
 ## Update an array value - primitives
 
+### C# code
+
+```csharp
+using System.Net.Http;
+
+public class User
+{
+    public User(string id) { /****/ }
+    internal User(string id, ETag eTag, string first, string last, IList<string> pets) { /****/ }
+
+    public string Id { get; }
+    public ETag ETag { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public IList<string> Pets { get; }
+}
+
+Response<User> response;
+
+do 
+{
+    User user = client.GetUser("123");
+    user.Pets.Add("rizzo");
+
+    response = client.UpdateUser(user, onlyIfUnchanged: true);
+}
+while (response.Status == HttpStatusCode.PreconditionFailed);
+```
+
 ### Resource state
 
 <table>
@@ -664,35 +700,6 @@ If-Match: "abc"
   </tr>
 </table>
 
-### C# code
-
-```csharp
-using System.Net.Http;
-
-public class User
-{
-    public User(string id) { /****/ }
-    internal User(string id, ETag eTag, string first, string last, IList<string> pets) { /****/ }
-
-    public string Id { get; }
-    public ETag ETag { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public IList<string> Pets { get; }
-}
-
-Response<User> response;
-
-do 
-{
-    User user = client.GetUser("123");
-    user.Pets.Add("rizzo");
-
-    response = client.UpdateUser(user, onlyIfUnchanged: true);
-}
-while (response.Status == HttpStatusCode.PreconditionFailed);
-```
-
 ### HTTP traffic
 
 ```mermaid
@@ -729,6 +736,44 @@ For further details of conditional requests, see:
 - [Avoiding mid-air collisions](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/412#avoiding_mid-air_collisions)
 
 ## Update an array value - objects
+
+### C# code
+
+```csharp
+using System.Net.Http;
+
+public class RouterJob
+{
+    public RouterJob(string id) { /****/ }
+    internal RouterJob(string id, string channelId, int priority, List<RouterWorkerSelector> selectors) { /****/ }
+
+    public string Id { get; }
+    public ETag ETag { get; set; }
+    public string ChannelId { get; set; }
+    public int Priority { get; set; }
+    public IList<RouterWorkerSelector> Selectors { get; }
+}
+
+public class RouterWorkerSelector
+{
+    public RouterWorkerSelector() { /****/ }
+    internal RouterWorkerSelector(string key, bool expedite) { /****/ }
+
+    public string Key { get; set; }
+    public bool Expedite { get; set; }
+}
+
+Response<RouterJob> response;
+
+do 
+{
+    RouterJob job = client.GetJob("123");
+    job.Selectors[0].Expedite = true;
+
+    response = client.UpdateJob(job, onlyIfUnchanged: true);
+}
+while (response.Status == HttpStatusCode.PreconditionFailed);
+```
 
 ### Resource state
 
@@ -822,44 +867,6 @@ If-Match: "abc"
   </tr>
 </table>
 
-### C# code
-
-```csharp
-using System.Net.Http;
-
-public class RouterJob
-{
-    public RouterJob(string id) { /****/ }
-    internal RouterJob(string id, string channelId, int priority, List<RouterWorkerSelector> selectors) { /****/ }
-
-    public string Id { get; }
-    public ETag ETag { get; set; }
-    public string ChannelId { get; set; }
-    public int Priority { get; set; }
-    public IList<RouterWorkerSelector> Selectors { get; }
-}
-
-public class RouterWorkerSelector
-{
-    public RouterWorkerSelector() { /****/ }
-    internal RouterWorkerSelector(string key, bool expedite) { /****/ }
-
-    public string Key { get; set; }
-    public bool Expedite { get; set; }
-}
-
-Response<RouterJob> response;
-
-do 
-{
-    RouterJob job = client.GetJob("123");
-    job.Selectors[0].Expedite = true;
-
-    response = client.UpdateJob(job, onlyIfUnchanged: true);
-}
-while (response.Status == HttpStatusCode.PreconditionFailed);
-```
-
 ### HTTP traffic
 
 ```mermaid
@@ -880,8 +887,3 @@ sequenceDiagram
 ### Comments
 
 Please see **Comments** section in [Update an array value - primitives](#update-an-array-value---primitives) section above.
-
-## Related work
-
-- [JSON Merge Patch arch board issue](https://github.com/Azure/azure-sdk/issues/5966)
-- [.NET Patch Models design principles](https://gist.github.com/annelo-msft/ae16eda80b382cc3ae9428954c08e069)
