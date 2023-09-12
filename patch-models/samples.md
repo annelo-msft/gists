@@ -107,7 +107,7 @@ sequenceDiagram
 <details>
 <summary><h3><b>2. Update a top-level property</b></h3></summary>
 
-This sample shows a basic example of updating a top-level property on a model with PATCH.
+This sample shows a basic example of how a user would update a top-level property on a model with PATCH.
 
 ### C# code
 
@@ -331,7 +331,7 @@ sequenceDiagram
 
 This example illustrates some of the challenges that can arise for users when attempting to replace nested models with PATCH.
 
-Specifically, if a nested model has had a property added in some version (v2 in this example), using an earlier version client (v1 in this example) can result in a "torn write" -- i.e. a situation where the caller intended to fully replace the resource, but unintentionally left v2 properties on the resource.
+Specifically, if a nested model has had a property added in some version (v2 in this example), using an earlier version client (v1 in this example) can result in a "torn write" -- i.e. a situation where the caller intended to fully replace the resource but unintentionally left v2 properties on the resource.
 
 This section illustrates the problem in Example 1, then proposes a solution to mitigate it in Examples 2 and 3.
 
@@ -368,7 +368,7 @@ public class Address
 public class Address
 {
     public Address() { /****/ }
-    internal Address(string street, string city, string state, string zip) { /****/ }
+    internal Address(string street, string street2, string city, string state, string zip) { /****/ }
 
     public string Street { get; set; }
 
@@ -497,12 +497,12 @@ If a caller tries to overwrite the value of a service resource that could have e
 1. They can set it to `null` to delete the resource.
 1. If they have retrieved the resource and the model they are holding in-memory confirms that the value is absent or has been deleted, they can set it to a new instance of the model.
 
-Overwriting a nested model that has a non-null value will result in an exception being thrown warning the caller about possible forward-compatibility data integrity issues.
+Overwriting a nested model that has a non-null value will result in an exception being thrown that warns the caller about possible forward-compatibility data integrity issues.
 
 ### C# code - alternate approach, Example 2
 
 ```csharp
-// v1 client code - "safe" because user doesn't believe they're replacing Address
+// v1 client code - "safe" because user doesn't believe they are completely replacing Address
 User user = v1Client.GetUser("123");
 user.Address.Street = "One Microsoft Way";
 v1Client.UpdateUser(user);
@@ -524,6 +524,7 @@ user.Address = new Address() {
     State = "WA",
     ZipCode = "98052"
 }
+
 v1Client.UpdateUser(user);
 ```
 
@@ -680,7 +681,7 @@ TBD
 <details>
 <summary><h3><b>7. Update an array value - primitives</b></h3></summary>
 
-This sample illustrates our proposal for array updates, and discusses the rationale for this approach in the Comments section below.
+This sample illustrates our proposal for array updates, and discusses the rationale for this approach in the **Comments** section below.
 
 ### C# code
 
@@ -801,7 +802,16 @@ sequenceDiagram
     Note left of service: ETag="abc"<br>{ <Resource Before> }
     client->>service: PATCH /users/123
     activate service
-    Note right of client: If-Match="abc"<br>{ <Request Body> }
+    service->>client: 412 Precondition Failed
+    deactivate service
+    client->>service: GET /users/123
+    activate service
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: ETag="xyz"<br>{  }
+    client->>service: PATCH /users/123
+    activate service
+    Note right of client: If-Match="xyz"<br>{ <Request Body> }
     service->>client: 200 OK
     deactivate service
     Note left of service: ETag="def"<br>{ <Resource After> }
