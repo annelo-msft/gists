@@ -4,7 +4,7 @@ The following examples describe the proposed implementation for .NET Patch model
 
 Each section begins with a C# code sample, followed by an illustration of how the service-side resource would change as a result of the C# code.  These are followed by an expandable diagram of HTTP traffic for completeness.
 
-Most examples are complete, but some are discussions of tricky cases we want to handle in special ways.  Each section begins with a short description of which purpose they serve.
+Most examples are complete, but some are discussions of tricky cases we want to handle in special ways and are open for discussion.  Each section begins with a short description of which purpose they serve.
 
 These examples are part of the larger discussion of .NET Patch models, documented in the following places:
 
@@ -23,6 +23,8 @@ These examples are part of the larger discussion of .NET Patch models, documente
 1. [Update an array value - objects](#update-an-array-value---objects)
 
 ## Create a new resource
+
+This sample shows a basic example of resource creation with PATCH.
 
 ### C# code
 
@@ -109,6 +111,8 @@ sequenceDiagram
 </details>
 
 ## Update a top-level property
+
+This sample shows a basic example of updating a top-level property on a model with PATCH.
 
 ### C# code
 
@@ -202,6 +206,8 @@ sequenceDiagram
 </details>
 
 ## Update a property on a nested model
+
+This sample shows how a user would update a property on a child model (`Address`) nested under a parent model (`User`) using PATCH.
 
 ### C# code
 
@@ -322,7 +328,13 @@ sequenceDiagram
 
 ## Replace a nested model
 
-### C# code
+This example illustrates some of the challenges that can arise for users when attempting to replace nested models with PATCH.
+
+Specifically, if a nested model has had a property added in some version (v2 in this example), using an earlier version client (v1 in this example) can result in a "torn write" -- i.e. a situation where the caller intended to fully replace the resource, but unintentionally left v2 properties on the resource.
+
+This section illustrates the problem in Example 1, then proposes a solution to mitigate it in Examples 2 and 3.
+
+### C# code -- "torn write", Example 1
 
 <details>
 <summary><b>Model definitions</b></summary>
@@ -379,6 +391,7 @@ user.Address = new Address() {
     State = "WA",
     ZipCode = "98052"
 }
+
 v1Client.UpdateUser(user);
 ```
 
@@ -657,6 +670,8 @@ TBD
 
 ## Update an array value - primitives
 
+This sample illustrates our proposal for array updates, and discusses the rationale for this approach in the Comments section below.
+
 ### C# code
 
 <details>
@@ -803,6 +818,10 @@ For further details of conditional requests, see:
 - [Avoiding mid-air collisions](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/412#avoiding_mid-air_collisions)
 
 ## Update an array value - objects
+
+This sample closely mirrors the [Update an array value - primitives](#update-an-array-value---primitives) example above, but illustrates the implications of resources that hold JSON arrays of objects.  Specifically, we want to call out the increased payload size to make a small change to a single property of an object held in an array when using JSON Merge Patch, i.e. the entire array must be sent to make this change.
+
+The models in this sample are simplifications of resources used by the ACS JobRouter service in its [Upsert Job](https://learn.microsoft.com/rest/api/communication/jobrouter/job-router/upsert-job?tabs=HTTP) operation.
 
 ### C# code
 
