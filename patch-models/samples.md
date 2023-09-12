@@ -417,9 +417,9 @@ sequenceDiagram
 
 ### Comments
 
-Note that in the above example, if the `user.Address` property is set to a new model instance, the user might have the intention of overwriting the full value.  In a forward-compatibility scenario, if they are using an earlier version of the client, and a property was added to the `Address` model in a later version, they could end up in a "torn write" state, with compromised data integrity.
+Note that in the above example, if the `user.Address` property is set to a new model instance, the user might have the intention of overwriting the full `Address` value.  In a forward-compatibility scenario, if they use an earlier client version and a property was added to the `Address` model in a later version, they could end up in a "torn write" state, with compromised data integrity.
 
-To help .NET users who may not have a deep understanding of forward compatibility scenarios, we would like to apply the following principle: _if you would have to send multiple requests to achieve a desired resource state on the service, we will require that you send multiple requests to do this."
+To help .NET users who may not have a deep understanding of forward compatibility scenarios, we would like to apply the following principle: _if you would have to send multiple requests to achieve a desired resource state on the service, we will require that you send multiple requests to do this._
 
 In this case, that principle results in the following developer experience.
 
