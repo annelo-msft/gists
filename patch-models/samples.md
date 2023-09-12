@@ -94,6 +94,8 @@ client.UpdateUser(user);
 <details>
 <summary><b>HTTP traffic</b></summary>
 
+(Please click the `<->` icon to see the diagram rendered correctly.)
+
 ```mermaid
 sequenceDiagram
     client->>service: PATCH /users/123
