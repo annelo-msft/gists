@@ -665,252 +665,7 @@ sequenceDiagram
 </details>
 
 <details>
-<summary><h3><b>5. Update values in a dictionary</b></h3></summary>
-
-This sample shows a basic example of how a user would update a dictionary value with PATCH.
-
-### C# code
-
-<details>
-<summary><b>Model definitions</b></summary>
-
-```csharp
-public class User
-{
-    public User(string id) { /****/ }
-    internal User(string id, string first, string last, Dictionary<string, string> petTypes) { /****/ }
-
-    public string Id { get; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public IDictionary<string, string> PetTypes { get; }
-}
-```
-
-</details>
-
-```csharp
-User user = client.GetUser("123");
-
-// Update existing value
-user.PetTypes["statler"] = "dog";
-
-// Add new
-user.PetTypes["rizzo"] = "rat";
-
-client.UpdateUser(user);
-```
-
-### Resource state
-
-<table>
-  <tr>
-    <td><b>Resource Before</b></td>
-    <td><b>Request Body: Merge Patch JSON</b></td>
-    <td><b>Resource After</b></td>
-  </tr>
-  <tr>
-<td valign="top">
-
-```json
-{
-  "id": "123",
-  "firstName": "Alice",
-  "lastName": "Smith",
-  "petTypes" : {
-    "statler": "cat",
-    "waldorf": "dog"
-  }
-}
-```
-
-</td>
-<td valign="top">
-
-```json
-{
-  "petTypes" : {
-    "statler": "dog",
-    "rizzo": "rat"
-  }
-}
-```
-
-</td>
-<td valign="top">
-
-```diff
-{
-  "id": "123",
-  "firstName": "Alice",
-  "lastName": "Smith",
-  "petTypes" : {
--   "statler": "cat",
-+   "statler": "dog",
-    "waldorf": "dog",
-+   "rizzo": "rat",
-  }
-}
-```
-
-</td>
-  </tr>
-</table>
-
-<details>
-<summary><b>HTTP traffic</b></summary>
-
-(Please click the `<->` icon to see the diagram rendered correctly.)
-
-```mermaid
-sequenceDiagram
-    client->>service: GET /users/123
-    activate service
-    service->>client: 200 OK
-    deactivate service
-    Note left of service: { <Resource Before> }
-    client->>service: PATCH /users/123
-    activate service
-    Note right of client: { <Request Body> }
-    service->>client: 200 OK
-    deactivate service
-    Note left of service: { <Resource After> }
-```
-
-</details>
-
-</details>
-
-</details>
-
-<details>
-<summary><h3><b>6. Clear a dictionary</b></h3></summary>
-
-This example illustrates how we would handle clearing a dictionary.  In this case, the dictionary is found on a service resource that has a property that is a JSON object with unnamed key-value pairs, which we would model as an `IDictionary` property in a .NET model.
-
-We discuss some challenges involved with this approach and propose a solution in the **Comments** section after the example.
-
-### C# code
-
-<details>
-<summary><b>Model definitions</b></summary>
-
-```csharp
-public class User
-{
-    public User(string id) { /****/ }
-    internal User(string id, string first, string last, Dictionary<string, string> petTypes) { /****/ }
-
-    public string Id { get; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public IDictionary<string, string> PetTypes { get; }
-}
-```
-
-</details>
-
-```csharp
-
-User user = client.GetUser("123");
-
-// Clear the dictionary
-user.PetTypes.Clear();
-
-// Add new item to empty dictionary
-user.PetTypes["rizzo"] = "rat";
-
-client.UpdateUser(user);
-```
-
-### Resource state
-
-<table>
-  <tr>
-    <td><b>Resource Before</b></td>
-    <td><b>Request Body: Merge Patch JSON</b></td>
-    <td><b>Resource After</b></td>
-  </tr>
-  <tr>
-<td valign="top">
-
-```json
-{
-  "id": "123",
-  "firstName": "Alice",
-  "lastName": "Smith",
-  "petTypes" : {
-    "statler": "dog",
-    "waldorf": "dog"
-  }
-}
-```
-
-</td>
-<td valign="top">
-
-```json
-{
-  "petTypes" : {
-    "statler": null,
-    "waldorf": null,
-    "rizzo": "rat"
-  }
-}
-```
-
-</td>
-<td valign="top">
-
-```diff
-{
-  "id": "123",
-  "firstName": "Alice",
-  "lastName": "Smith",
-  "petTypes" : {
--   "statler": "dog",
--   "waldorf": "dog",
-+   "rizzo": "rat",
-  }
-}
-```
-
-</td>
-  </tr>
-</table>
-
-<details>
-<summary><b>HTTP traffic</b></summary>
-
-(Please click the `<->` icon to see the diagram rendered correctly.)
-
-```mermaid
-sequenceDiagram
-    client->>service: GET /users/123
-    activate service
-    service->>client: 200 OK
-    deactivate service
-    Note left of service: { <Resource Before> }
-    client->>service: PATCH /users/123
-    activate service
-    Note right of client: { <Request Body> }
-    service->>client: 200 OK
-    deactivate service
-    Note left of service: { <Resource After> }
-```
-
-</details>
-
-### Comments
-
-Similar to the forward-compatibility issues described in example **Replace a nested model**, if a user wants to clear a dictionary, they need to ensure that every item in the dictionary is deleted.  If the dictionary has been modified since their last GET, there may be values in the dictionary that would not get deleted.
-
-We can address this by requiring the use of ETags with a `Dictionary.Clear` operation as described in the **Update an array value - primitives** example below.  Alternatively, we could allow users to do this under the principle that _users should know that someone else may have updated a resource since they last retrieved it and so they should use "update without ETags" at their own risk_.  This is the principle that guides us not to require ETags for updates to primitive properties.  However, since a user may not understand how our models have implemented `Dictionary.Clear`, it would be safer to help users prevent data integrity issues by requiring them to either use an ETag or work at the protocol level as described in the **Update an array value - primitives** example below.
-
-</details>
-
-<details>
-<summary><h3><b>7. Update an array value - primitives</b></h3></summary>
+<summary><h3><b>5. Update an array value - primitives</b></h3></summary>
 
 This sample illustrates our proposal for array updates, and discusses the rationale for this approach in the **Comments** section below.
 
@@ -1073,7 +828,7 @@ For further details of conditional requests, see:
 </details>
 
 <details>
-<summary><h3><b>8. Update an array value - objects</b></h3></summary>
+<summary><h3><b>6. Update an array value - objects</b></h3></summary>
 
 This sample closely mirrors the **Update an array value - primitives** example above, but illustrates the implications of resources that hold JSON arrays of objects.  Specifically, we want to call out the increased payload size to make a small change to a single property of an object held in an array when using JSON Merge Patch, i.e. the entire array must be sent to make this change.
 
@@ -1241,6 +996,251 @@ sequenceDiagram
 
 ### Comments
 
-Please see **Comments** section in [Update an array value - primitives](#update-an-array-value---primitives) section above.
+Please see **Comments** section in **Update an array value - primitives**](#update-an-array-value---primitives)** section above.
+
+</details>
+
+<details>
+<summary><h3><b>7. Update values in a dictionary</b></h3></summary>
+
+This sample shows a basic example of how a user would update a dictionary value with PATCH.
+
+### C# code
+
+<details>
+<summary><b>Model definitions</b></summary>
+
+```csharp
+public class User
+{
+    public User(string id) { /****/ }
+    internal User(string id, string first, string last, Dictionary<string, string> petTypes) { /****/ }
+
+    public string Id { get; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public IDictionary<string, string> PetTypes { get; }
+}
+```
+
+</details>
+
+```csharp
+User user = client.GetUser("123");
+
+// Update existing value
+user.PetTypes["statler"] = "dog";
+
+// Add new
+user.PetTypes["rizzo"] = "rat";
+
+client.UpdateUser(user);
+```
+
+### Resource state
+
+<table>
+  <tr>
+    <td><b>Resource Before</b></td>
+    <td><b>Request Body: Merge Patch JSON</b></td>
+    <td><b>Resource After</b></td>
+  </tr>
+  <tr>
+<td valign="top">
+
+```json
+{
+  "id": "123",
+  "firstName": "Alice",
+  "lastName": "Smith",
+  "petTypes" : {
+    "statler": "cat",
+    "waldorf": "dog"
+  }
+}
+```
+
+</td>
+<td valign="top">
+
+```json
+{
+  "petTypes" : {
+    "statler": "dog",
+    "rizzo": "rat"
+  }
+}
+```
+
+</td>
+<td valign="top">
+
+```diff
+{
+  "id": "123",
+  "firstName": "Alice",
+  "lastName": "Smith",
+  "petTypes" : {
+-   "statler": "cat",
++   "statler": "dog",
+    "waldorf": "dog",
++   "rizzo": "rat",
+  }
+}
+```
+
+</td>
+  </tr>
+</table>
+
+<details>
+<summary><b>HTTP traffic</b></summary>
+
+(Please click the `<->` icon to see the diagram rendered correctly.)
+
+```mermaid
+sequenceDiagram
+    client->>service: GET /users/123
+    activate service
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource Before> }
+    client->>service: PATCH /users/123
+    activate service
+    Note right of client: { <Request Body> }
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource After> }
+```
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary><h3><b>8. Clear a dictionary</b></h3></summary>
+
+This example illustrates how we would handle clearing a dictionary.  In this case, the dictionary is found on a service resource that has a property that is a JSON object with unnamed key-value pairs, which we would model as an `IDictionary` property in a .NET model.
+
+We discuss some challenges involved with this approach and propose a solution in the **Comments** section after the example.
+
+### C# code
+
+<details>
+<summary><b>Model definitions</b></summary>
+
+```csharp
+public class User
+{
+    public User(string id) { /****/ }
+    internal User(string id, string first, string last, Dictionary<string, string> petTypes) { /****/ }
+
+    public string Id { get; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public IDictionary<string, string> PetTypes { get; }
+}
+```
+
+</details>
+
+```csharp
+
+User user = client.GetUser("123");
+
+// Clear the dictionary
+user.PetTypes.Clear();
+
+// Add new item to empty dictionary
+user.PetTypes["rizzo"] = "rat";
+
+client.UpdateUser(user);
+```
+
+### Resource state
+
+<table>
+  <tr>
+    <td><b>Resource Before</b></td>
+    <td><b>Request Body: Merge Patch JSON</b></td>
+    <td><b>Resource After</b></td>
+  </tr>
+  <tr>
+<td valign="top">
+
+```json
+{
+  "id": "123",
+  "firstName": "Alice",
+  "lastName": "Smith",
+  "petTypes" : {
+    "statler": "dog",
+    "waldorf": "dog"
+  }
+}
+```
+
+</td>
+<td valign="top">
+
+```json
+{
+  "petTypes" : {
+    "statler": null,
+    "waldorf": null,
+    "rizzo": "rat"
+  }
+}
+```
+
+</td>
+<td valign="top">
+
+```diff
+{
+  "id": "123",
+  "firstName": "Alice",
+  "lastName": "Smith",
+  "petTypes" : {
+-   "statler": "dog",
+-   "waldorf": "dog",
++   "rizzo": "rat",
+  }
+}
+```
+
+</td>
+  </tr>
+</table>
+
+<details>
+<summary><b>HTTP traffic</b></summary>
+
+(Please click the `<->` icon to see the diagram rendered correctly.)
+
+```mermaid
+sequenceDiagram
+    client->>service: GET /users/123
+    activate service
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource Before> }
+    client->>service: PATCH /users/123
+    activate service
+    Note right of client: { <Request Body> }
+    service->>client: 200 OK
+    deactivate service
+    Note left of service: { <Resource After> }
+```
+
+</details>
+
+### Comments
+
+Similar to the forward-compatibility issues described in example **Replace a nested model**, if a user wants to clear a dictionary, they need to ensure that every item in the dictionary is deleted.  If the dictionary has been modified since their last GET, there may be values in the dictionary that would not get deleted.
+
+We can address this by requiring the use of ETags with a `Dictionary.Clear` operation as described in the **Update an array value - primitives** example below.  Alternatively, we could allow users to do this under the principle that _users should know that someone else may have updated a resource since they last retrieved it and so they should use "update without ETags" at their own risk_.  This is the principle that guides us not to require ETags for updates to primitive properties.  However, since a user may not understand how our models have implemented `Dictionary.Clear`, it would be safer to help users prevent data integrity issues by requiring them to either use an ETag or work at the protocol level as described in the **Update an array value - primitives** example below.
 
 </details>
