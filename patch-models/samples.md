@@ -14,7 +14,7 @@ These examples are part of the larger discussion of .NET Patch models, documente
 ## Examples
 
 <details>
-<summary><h2><b>Create a new resource</b></h2></summary>
+<summary><h3><b>Create a new resource</b></h3></summary>
 
 This sample shows a basic example of resource creation with PATCH.
 
@@ -105,7 +105,7 @@ sequenceDiagram
 </details>
 
 <details>
-<summary><h2><b>Update a top-level property</b></h2></summary>
+<summary><h3><b>Update a top-level property</b></h3></summary>
 
 This sample shows a basic example of updating a top-level property on a model with PATCH.
 
@@ -203,7 +203,7 @@ sequenceDiagram
 </details>
 
 <details>
-<summary><h2><b>Update a property on a nested model</b></h2></summary>
+<summary><h3><b>Update a property on a nested model</b></h3></summary>
 
 This sample shows how a user would update a property on a child model (`Address`) nested under a parent model (`User`) using PATCH.
 
@@ -327,7 +327,7 @@ sequenceDiagram
 </details>
 
 <details>
-<summary><h2><b>Replace a nested model</b></h2></summary>
+<summary><h3><b>Replace a nested model</b></h3></summary>
 
 This example illustrates some of the challenges that can arise for users when attempting to replace nested models with PATCH.
 
@@ -664,21 +664,21 @@ sequenceDiagram
 </details>
 
 <details>
-<summary><h2><b>Update a dictionary value</b></h2></summary>
+<summary><h3><b>Update a dictionary value</b></h3></summary>
 
 TBD
 
 </details>
 
 <details>
-<summary><h2><b>Clear a dictionary</b></h2></summary>
+<summary><h3><b>Clear a dictionary</b></h3></summary>
 
 TBD
 
 </details>
 
 <details>
-<summary><h2><b>Update an array value - primitives</b></h2></summary>
+<summary><h3><b>Update an array value - primitives</b></h3></summary>
 
 This sample illustrates our proposal for array updates, and discusses the rationale for this approach in the Comments section below.
 
@@ -830,7 +830,7 @@ For further details of conditional requests, see:
 </details>
 
 <details>
-<summary><h2><b>Update an array value - objects</b></h2></summary>
+<summary><h3><b>Update an array value - objects</b></h3></summary>
 
 This sample closely mirrors the **Update an array value - primitives** example above, but illustrates the implications of resources that hold JSON arrays of objects.  Specifically, we want to call out the increased payload size to make a small change to a single property of an object held in an array when using JSON Merge Patch, i.e. the entire array must be sent to make this change.
 
