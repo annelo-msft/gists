@@ -13,18 +13,21 @@ These examples are part of the larger discussion of .NET Patch models, documente
 
 ## TOC of example cases
 
-- [Create a new resource](#create-a-new-resource)
-- [Update a top-level property](#update-a-top-level-property)
-- [Update a property on a nested model](#update-a-property-on-a-nested-model)
-- [Replace a nested model - "Torn Write" scenario](#replace-a-nested-model---torn-write-scenario)
-- [Update a dictionary value](#update-a-dictionary-value)
-- [Clear a dictionary](#clear-a-dictionary)
-- [Update an array value - primitives](#update-an-array-value---primitives)
-- [Update an array value - objects](#update-an-array-value---objects)
+1. [Create a new resource](#create-a-new-resource)
+1. [Update a top-level property](#update-a-top-level-property)
+1. [Update a property on a nested model](#update-a-property-on-a-nested-model)
+1. [Replace a nested model](#replace-a-nested-model)
+1. [Update a dictionary value](#update-a-dictionary-value)
+1. [Clear a dictionary](#clear-a-dictionary)
+1. [Update an array value - primitives](#update-an-array-value---primitives)
+1. [Update an array value - objects](#update-an-array-value---objects)
 
 ## Create a new resource
 
 ### C# code
+
+<details>
+<summary><b>Model definitions</b></summary>
 
 ```csharp
 public class User
@@ -36,7 +39,11 @@ public class User
     public string FirstName { get; set; }
     public string LastName { get; set; }
 }
+```
 
+</details>
+
+```csharp
 User user = new User("123");
 user.FirstName = "Alice";
 user.LastName = "Smith";
@@ -284,7 +291,7 @@ sequenceDiagram
     Note left of service: { <Resource After> }
 ```
 
-## Replace a nested model - "Torn Write" scenario
+## Replace a nested model
 
 ### C# code
 
