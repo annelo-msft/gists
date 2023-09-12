@@ -830,7 +830,7 @@ For further details of conditional requests, see:
 </details>
 
 <details>
-<summary><h3><b>Update an array value - objects</b></h3></summary>
+<summary><h2><b>Update an array value - objects</b></h2></summary>
 
 This sample closely mirrors the **Update an array value - primitives** example above, but illustrates the implications of resources that hold JSON arrays of objects.  Specifically, we want to call out the increased payload size to make a small change to a single property of an object held in an array when using JSON Merge Patch, i.e. the entire array must be sent to make this change.
 
