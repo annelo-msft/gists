@@ -802,13 +802,14 @@ sequenceDiagram
     Note left of service: ETag="abc"<br>{ <Resource Before> }
     client->>service: PATCH /users/123
     activate service
+    Note right of client: If-Match="abc"<br>{ <Request Body> }
     service->>client: 412 Precondition Failed
     deactivate service
     client->>service: GET /users/123
     activate service
     service->>client: 200 OK
     deactivate service
-    Note left of service: ETag="xyz"<br>{  }
+    Note left of service: ETag="xyz"<br>{ <Modified Resource> }
     client->>service: PATCH /users/123
     activate service
     Note right of client: If-Match="xyz"<br>{ <Request Body> }
