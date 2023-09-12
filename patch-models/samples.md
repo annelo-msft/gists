@@ -11,16 +11,7 @@ These examples are part of the larger discussion of .NET Patch models, documente
 - [JSON Merge Patch arch board issue](https://github.com/Azure/azure-sdk/issues/5966)
 - [.NET Patch Models design principles](https://gist.github.com/annelo-msft/ae16eda80b382cc3ae9428954c08e069)
 
-## TOC of example cases
-
-1. [Create a new resource](#create-a-new-resource)
-1. [Update a top-level property](#update-a-top-level-property)
-1. [Update a property on a nested model](#update-a-property-on-a-nested-model)
-1. [Replace a nested model](#replace-a-nested-model)
-1. [Update a dictionary value](#update-a-dictionary-value)
-1. [Clear a dictionary](#clear-a-dictionary)
-1. [Update an array value - primitives](#update-an-array-value---primitives)
-1. [Update an array value - objects](#update-an-array-value---objects)
+## Examples
 
 <details>
 <summary><b>Create a new resource</b></summary>
@@ -113,7 +104,8 @@ sequenceDiagram
 
 </details>
 
-## Update a top-level property
+<details>
+<summary><b>Update a top-level property</b></summary>
 
 This sample shows a basic example of updating a top-level property on a model with PATCH.
 
@@ -208,7 +200,10 @@ sequenceDiagram
 
 </details>
 
-## Update a property on a nested model
+</details>
+
+<details>
+<summary><b>Update a property on a nested model</b></summary>
 
 This sample shows how a user would update a property on a child model (`Address`) nested under a parent model (`User`) using PATCH.
 
@@ -329,7 +324,10 @@ sequenceDiagram
 
 </details>
 
-## Replace a nested model
+</details>
+
+<details>
+<summary><b>Replace a nested model</b></summary>
 
 This example illustrates some of the challenges that can arise for users when attempting to replace nested models with PATCH.
 
@@ -663,6 +661,8 @@ sequenceDiagram
 
 </details>
 
+</details>
+
 ## Update a dictionary value
 
 TBD
@@ -671,7 +671,8 @@ TBD
 
 TBD
 
-## Update an array value - primitives
+<details>
+<summary><b>Update an array value - primitives</b></summary>
 
 This sample illustrates our proposal for array updates, and discusses the rationale for this approach in the Comments section below.
 
@@ -820,9 +821,12 @@ For further details of conditional requests, see:
 - [If-Match](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match)
 - [Avoiding mid-air collisions](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/412#avoiding_mid-air_collisions)
 
-## Update an array value - objects
+</details>
 
-This sample closely mirrors the [Update an array value - primitives](#update-an-array-value---primitives) example above, but illustrates the implications of resources that hold JSON arrays of objects.  Specifically, we want to call out the increased payload size to make a small change to a single property of an object held in an array when using JSON Merge Patch, i.e. the entire array must be sent to make this change.
+<details>
+<summary><b>Update an array value - objects</b></summary>
+
+This sample closely mirrors the **Update an array value - primitives** example above, but illustrates the implications of resources that hold JSON arrays of objects.  Specifically, we want to call out the increased payload size to make a small change to a single property of an object held in an array when using JSON Merge Patch, i.e. the entire array must be sent to make this change.
 
 The models in this sample are simplifications of resources used by the ACS JobRouter service in its [Upsert Job](https://learn.microsoft.com/rest/api/communication/jobrouter/job-router/upsert-job?tabs=HTTP) operation.
 
@@ -989,3 +993,5 @@ sequenceDiagram
 ### Comments
 
 Please see **Comments** section in [Update an array value - primitives](#update-an-array-value---primitives) section above.
+
+</details>
