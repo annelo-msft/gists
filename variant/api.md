@@ -121,4 +121,33 @@ if (v.TryGetValue(out int i))
 
 ### Handling nulls
 
-### Numeric conversions and allowable casts
+Variant handles nullable primitives without boxing them for value types on the supported list above.  If a Variant is holding one of these supported nullable primitive types and its value is `null`, the value if its `Type` property will be the type of the primitive.
+
+// TODO: actually, this is not true - the actual behavior is that Type always returns null if we're holding a null value.  Would we want to store this?
+
+```csharp
+int? i = null;
+Variant v = i;
+
+// v.Type is System.Nullable<System.Int32>
+```
+
+If the Variant is holding a reference type with a `null` value, it doesn't store the type information.  Its `Type` property will return `null`, and any call to `As<T>` that asks for a reference type will succeed and return `null`.
+
+Working with nulls with Variant can be a little tricky for the following reasons.  First, since a Variant instance holding `null` has a value (i.e., it's a Variant holding a `null`), any comparison to `null` will return false.  And assigning a Variant to hold `null` requires you to call its constructor and cast the `null` a type.  But, there are some APIs that make checking to see if a Variant holding a `null` easier.
+
+To check whether a Variant holds `null`, you can read the `IsNull` property:
+
+```csharp
+bool isNull = v.IsNull;
+```
+
+To assign the value a Variant holds to `null`, you can set it to `Variant.Null`:
+
+```csharp
+Variant v = Variant.IsNull;
+```
+
+### Allowable casts and numeric conversions
+
+// TODO:
