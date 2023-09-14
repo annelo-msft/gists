@@ -824,6 +824,8 @@ Note that if the array value in the `User` model is not modified, no exception w
 
 #### C# code - when service does not support conditional requests
 
+This sample sends the same request body as shown above, with the exception that it does not send the `If-Match` header because in this case the service does not support this.
+
 ```csharp
 User user = client.GetUser("123");
 
@@ -835,7 +837,7 @@ var patch = new {
     }
 }
 
-response = client.UpdateUser(user.Id, patch);
+response = client.UpdateUser(user.Id, RequestContent.Create(patch));
 ```
 
 #### References
