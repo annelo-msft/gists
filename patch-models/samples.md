@@ -134,6 +134,19 @@ user.LastName = "Jones";
 client.UpdateUser(user);
 ```
 
+<details>
+<summary>Without initial read</summary>
+
+Not every service provides read access with write access, so Patch models must also work without initially retrieving the resource.  The following C# sample shows how you would send the same PATCH request without doing an initial read.  Note that the HTTP traffic is the same as shown below, without the initial GET request and service response.
+
+```csharp
+User user = new User("123");
+user.LastName = "Jones";
+client.UpdateUser(user);
+```
+
+</details>
+
 ### Resource state
 
 <table>
