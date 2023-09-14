@@ -137,7 +137,7 @@ client.UpdateUser(user);
 <details>
 <summary><b>Same example without initial read</b></summary>
 
-Not every service provides read access with write access, so Patch models must also work without initially retrieving the resource.  The following C# sample shows how you would send the same PATCH request without doing an initial read.  Note that the HTTP traffic is the same as shown below, without the initial GET request and service response.
+Not every service provides read access with write access, so Patch models must also work without initially retrieving the resource.  The following C# sample shows how you would send the same PATCH request without doing an initial read.  Note that the HTTP traffic is the same as shown below, but without the initial GET request and service response.
 
 ```csharp
 User user = new User("123");
@@ -256,6 +256,19 @@ User user = client.GetUser("123");
 user.Address.Street = "15010 NE 36th St";
 client.UpdateUser(user);
 ```
+
+<details>
+<summary><b>Same example without initial read</b></summary>
+
+Not every service provides read access with write access, so Patch models must also work without initially retrieving the resource.  The following C# sample shows how you would send the same PATCH request without doing an initial read.  Note that the HTTP traffic is the same as shown below, but without the initial GET request and service response.
+
+```csharp
+User user = new User("123");
+user.Address.Street = "15010 NE 36th St";
+client.UpdateUser(user);
+```
+
+</details>
 
 ### Resource state
 
@@ -409,6 +422,25 @@ user.Address = new Address() {
 v1Client.UpdateUser(user);
 ```
 
+<details>
+<summary><b>Same example without initial read</b></summary>
+
+Not every service provides read access with write access, so Patch models must also work without initially retrieving the resource.  The following C# sample shows how you would send the same PATCH request without doing an initial read.  Note that the HTTP traffic is the same as shown below, but without the initial GET request and service response.
+
+```csharp
+User user = new User("123");
+user.Address = new Address() {
+    Street = "One Microsoft Way",
+    City = "Redmond",
+    State = "WA",
+    ZipCode = "98052"
+}
+
+v1Client.UpdateUser(user);
+```
+
+</details>
+
 ### Resource state
 
 <table>
@@ -522,6 +554,8 @@ v1Client.UpdateUser(user);
 ```
 
 ### C# code - alternate approach, Example 3
+
+**Update: Per feedback, we believe this approach goes counter to the intentions and benefits of using JSON Merge Patch and we will not move forward with it.** Architect feedback indicates that the benefits of forward-compatibility (i.e. not unintentionally overwriting v2 properties) outweigh the drawbacks of ending up in a "torn write" state, and that many services are able to handle this gracefully on the service side without the client needing to intervene.
 
 ```csharp
 // v1 client code - "safe" because user is forced to delete the v2 Address completely before making an update
