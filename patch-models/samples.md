@@ -809,16 +809,36 @@ sequenceDiagram
 
 ### Comments
 
-To help .NET users who may not have a deep understanding of the full details of the [JSON Merge Patch RFC](https://www.rfc-editor.org/rfc/rfc7396), we would like to apply the following principle: _if we need to send values in the Patch request body that the user did not explicitly modify in their application code, we should prevent accidental data loss from the result of sending these values._  Users should either use conditional requests to prevent unknowingly overwriting data on the server, or hand-author a request body to opt-in to the responsibility of handling nuances of the JSON Merge Patch RFC themselves.
+To help .NET users who may not have a deep understanding of the full details of the [JSON Merge Patch RFC](https://www.rfc-editor.org/rfc/rfc7396), we would like to apply the following principle: _if we need to send values in the Patch request body that the user did not explicitly modify in their application code, we should prevent accidental data loss from the result of sending these values._  Users should either use conditional requests to prevent unintentionally overwriting data on the server, or use a protocol method instead of a convenience method and hand-author a request body.  Either of these interventions lets the user opt-in to the responsibility of handling nuances of the JSON Merge Patch RFC themselves, and promotes transparency about what the client is sending.
 
-In this instance, that principle results in the following developer experience.
+The reason we do this is to say: “if you use APIs that are easy, what we do will be easy to understand; if you want to do something that might be surprising, we need you to grok the RFC, so the complexity of the API will indicate that you need to do more work to understand what’s going on.”
 
-If a caller modifies an array value and doesn't send an ETag in the PATCH request, we will throw an exception with a message that says one of the following:
+In this instance, these principle results in the following developer experience.
 
-1. If the service supports conditional requests, the message will direct the user to set the `If-Match` header on the PATCH request.  In the example above, this is accomplished by retrieving the resource value before updating it or setting the ETag property on the model manually.  Setting the optional `onlyIfUnchanged` parameter in the `UpdateUser` method adds the value of the ETag property from the model to the `If-Match` header on the request.
-1. If the service does not support conditional requests, the message will instruct the user to compose the PATCH JSON payload by hand and send it using the corresponding protocol method.  In this case, no `onlyIfUnchanged` parameter will be in the method signature of the update method, since the service does not support it.
+If a caller modifies an array value in a Patch model and doesn't send an ETag in the update request, we will throw an exception with one of the following messages:
+
+1. If the service supports conditional requests, the message will direct the user to set the `If-Match` header on the PATCH request.  In the example above, this is accomplished by retrieving the resource value before updating it or setting the ETag property on the model manually.  Setting the optional `onlyIfUnchanged` parameter in the `UpdateUser` method adds the value of the ETag property from the model to the `If-Match` header on the request.  The sample C# code for this is shown above.
+1. If the service does not support conditional requests, the message will instruct the user to compose the PATCH JSON payload by hand and send it using the corresponding protocol method.  In this case, no `onlyIfUnchanged` parameter will be in the method signature of the update method, since the service does not support it.  The sample C# code for this is shown below.
 
 Note that if the array value in the `User` model is not modified, no exception will be thrown from the update method because the client did not try to send values that the user did not modify.
+
+#### C# code - when service does not support conditional requests
+
+```csharp
+User user = client.GetUser("123");
+
+var patch = new {
+    "pets" = new string[] {
+        "statler",
+        "waldorf",
+        "rizzo"
+    }
+}
+
+response = client.UpdateUser(user.Id, patch);
+```
+
+#### References
 
 For further details of conditional requests, see:
 
