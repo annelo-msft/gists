@@ -664,7 +664,7 @@ sequenceDiagram
 
 </details>
 
-<details>
+<details open>
 <summary><h3><b>5. Update an array value - primitives</b></h3></summary>
 
 This sample illustrates our proposal for array updates, and discusses the rationale for this approach in the **Comments** section below.
