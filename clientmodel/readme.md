@@ -1,16 +1,16 @@
-# System.Net.ClientModel API
+# System.ClientModel API
 
 ## Overview
 
 The Azure SDK provides .NET clients that enable idiomatic development of .NET applications that communicate with Azure services. Many of our clients are created with code generation tools, and use concepts that the .NET platform doesn't necessarily provide features for, such as retry logic and credentials for authenticating with cloud services. To avoid generating the code for these concepts into every client library, we have created a shared library called Azure.Core that our generated clients depend on. We would now like to be able to create generated clients that can communicate with any cloud service, not only those in Azure. We believe putting these client building block types in a `System.` namespace is a good way to put them in a neutral bucket.
 
-We selected the base namespace `System.Net.ClientModel` for these types. We chose `ClientModel` to indicate that the types are building blocks for clients that call cloud services and included the `Net` prefix to indicate that these aren't UI-client types.
+We selected the package name `System.ClientModel` for these types to indicate that the types are building blocks for clients that call cloud services.  The `System.ClientModel` package includes types in a root `System.ClientModel` namespace as well as lower-level APIs in a `System.ClientModel.Primitives` namespace.
 
-We plan to maintain the source for the proposed `System.Net.ClientModel` package, as well as the release pipelines needed to publish the package to NuGet, in the Azure/azure-sdk-for-net repo.
+We plan to maintain the source for the proposed `System.ClientModel` package, as well as the release pipelines needed to publish the package to NuGet, in the Azure/azure-sdk-for-net repo.
 
 ## Concepts
 
-This section describes the two user groups we believe can benefit from having these APIs in the .NET ecosystem.  It then describes terminology we'll use to categorize and motivate different APIs.  Finally, it describes two different types of methods we expect ClientModel clients to have, in order to further explain the APIs.
+This section establishes the terminology we'll use to describe user groups, API categorization, and client-specific concepts.
 
 ### Two user groups
 
@@ -22,7 +22,7 @@ To use terminology described by Richard Lander in the [The convenience of .NET](
 
 ### Service methods
 
-Finally, building on the concepts above, we introduce terminology for the two types of methods that ClientModel types are designed to enable on ClientModel clients.  A **service method** is a method on a ClientModel client that sends a message to a cloud service, receives the service's response, and returns a value to the client-user that called the method, for use in their application. ClientModel clients can expose two different types of service methods: "convenience methods" and "protocol methods".
+Finally, building on the user and API categorizations above, we introduce terminology for the two types of methods that ClientModel types are designed to enable on ClientModel clients.  A **service method** is a method on a ClientModel client that sends a message to a cloud service, receives the service's response, and returns a value to the client-user that called the method, for use in their application. ClientModel clients can expose two different types of service methods: "convenience methods" and "protocol methods".
 
 **Convenience methods** are service methods that take a strongly-typed model representing schematized data needed to communicate with the cloud service as input, and return a strongly-typed model as output.  Having strongly-typed models that represent service concepts provides a layer of convenience over working with raw JSON, and unifies the experience for users of ClientModel clients when cloud services differ in wire-formats.  That is, a client-user can learn the patterns for strongly-typed models that ClientModel clients provide, and use them together without having to reason about whether a cloud service represents resources using JSON or XML.
 
@@ -40,7 +40,7 @@ The following shows an example of a minimal application that could be implemente
 using Maps;
 using System;
 using System.Net;
-using System.Net.ClientModel;
+using System.ClientModel;
 
 string key = Environment.GetEnvironmentVariable("MAPS_API_KEY") ?? string.Empty;
 KeyCredential credential = new KeyCredential(key);
@@ -50,10 +50,10 @@ try
 {
     IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
 
-    Result<IPAddressCountryPair> result = client.GetCountryCode(ipAddress);
-    IPAddressCountryPair ipCountryPair = result.Value;
+    OutputMessage<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
+    IPAddressCountryPair ipCountryPair = output.Value;
 
-    Console.WriteLine($"Response status code: '{result.GetRawResponse().Status}'");
+    Console.WriteLine($"Response status code: '{output.GetRawResponse().Status}'");
     Console.WriteLine($"IPAddress: '{ipCountryPair.IpAddress}', Country code: '{ipCountryPair.CountryRegion.IsoCode}'");
 }
 catch (ClientRequestException e)
@@ -63,6 +63,7 @@ catch (ClientRequestException e)
 ```
 
 We highlight the following patterns intended to be common across ClientModel clients:
+
 1. Construction of a ClientModel client, taking a service endpoint and credential
 1. Calling a client's service method (the convenience method `GetCountryCode`)
 1. Obtaining a strongly-typed model that represents a service resource (here, `IPAddressCountryPair`)
@@ -71,15 +72,16 @@ We highlight the following patterns intended to be common across ClientModel cli
 
 ### Client-user types
 
-Types intended for use by client-users in application code are grouped in the `System.Net.ClientModel` namespace.  These include:
+Types intended for use by client-users in application code are grouped in the `System.ClientModel` namespace.  These include:
+
 - `KeyCredential` - supports (1)
-- `Result<T>` - supports (2), (3), (4)
-- `Result` - supports (4)
+- `OutputMessage<T>` - supports (2), (3), (4)
+- `OutputMessage` - supports (4)
 - `ClientRequestException` - supports (5)
 
 ## Client-author types
 
-This section describes ClientModel client implementation patterns that the types in the `System.Net.ClientModel.Core` namespace have been designed to enable.  The patterns shown here include patterns for implementing a client constructor, patterns for implementing both convienence and protocol service methods -- both illustrating usage of types intended for client-authors -- and concludes with a discussion of APIs designed to support lower-level control and flexibility for both client-users and client-authors.
+This section describes ClientModel client implementation patterns that the types in the `System.ClientModel.Primitives` namespace have been designed to enable.  The patterns shown here include patterns for implementing a client constructor, patterns for implementing both convenience and protocol service methods -- both illustrating usage of types intended for client-authors -- and concludes with a discussion of APIs designed to support lower-level control and flexibility for both client-users and client-authors.
 
 The first example here continues from the application sample in the prior section.  It sketches an implementation of the ClientModel client `MapsClient` that was used in the prior example.
 
@@ -91,7 +93,7 @@ namespace Maps;
 public class MapsClient
 {
     //
-    // 1. Private members intialized by the client constructor
+    // 1. Private members initialized by the client constructor
     //
 
     //
@@ -147,6 +149,7 @@ The following illustrates the constructor implementation for our example client:
 ```
 
 Note that:
+
 1. The service URI is stored in `_endpoint` for use later when creating requests
 1. The user's credential is stored in `_credential` to use in the authentication policy and/or later request creation
 1. The service's API version is stored so it can be added as a query parameter to request URIs
@@ -179,17 +182,18 @@ In our `MapsClient` example, the following shows how the `GetCountryCode` conven
     }
 ```
 
-Note that this method calls through to the protocol method `GetCountryCode` and passes a string instead of an `IPAddress`.  It receives the returned `Result`, obtains the lower-level `MessageResponse`, and creates a strongly-typed `IPAddressCountryPair` return value from the response content before creating a `Response<T>` to return to the client-user.
+Note that this method calls through to the protocol method `GetCountryCode` and passes a string instead of an `IPAddress`.  It receives the returned `OutputMessage`, obtains the lower-level `PipelineResponse`, and creates a strongly-typed `IPAddressCountryPair` return value from the response content before creating a `OutputMessage<T>` to return to the client-user.
 
 The common patterns highlighted here include:
-1. Converting strongly-typed inputs to `MessageBody` (not shown in this sample)
+
+1. Converting strongly-typed inputs to `InputContent` (not shown in this sample)
 1. Calling the protocol method corresponding to the service operation
-1. Converting the response `MessageBody` to a strongly-typed output model
+1. Converting the response `InputContent` to a strongly-typed output model
 1. Packaging the output model with the protocol-level response to return to the caller
 
 #### Protocol method
 
-The protocol method for the `GetCountryCode` operation corresponds closely to the operation as defined in the service's REST API: https://learn.microsoft.com/en-us/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP.  Path and query parameters in the service API correspond to primitive-type input parameters in the client's service method, and any content meant to go in the message body would correspond to a `MessageBody` input parameter (not shown here).  The return type is a `Result`, on which `GetRawResponse()` can be called to get access to the `MessageResponse.Body` property, where `MessageBody` provides a thin layer of convenience over the raw response content.
+The protocol method for the `GetCountryCode` operation corresponds closely to the operation as defined in the service's REST API: https://learn.microsoft.com/en-us/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP.  Path and query parameters in the service API correspond to primitive-type input parameters in the client's service method, and any content meant to go in the message body would correspond to a `InputContent` input parameter (not shown here).  The return type is a `OutputMessage`, on which `GetRawResponse()` can be called to get access to the `PipelineResponse.Content` property, where `InputContent` provides a thin layer of convenience over the raw response content.
 
 The following shows how the `GetCountryCode` protocol method could be implemented on the example client:
 
@@ -216,20 +220,21 @@ The following shows how the `GetCountryCode` protocol method could be implemente
     }
 ```
 
-Note that this method adds a `MessageClassifier` to the passed-in `RequestOptions`, creates a message with a request, sends the message via the pipeline, checks whether the response is an error response and throws an exception if needed, and finally returns the `Result` to the caller.
+Note that this method adds a `MessageClassifier` to the passed-in `RequestOptions`, creates a message with a request, sends the message via the pipeline, checks whether the response is an error response and throws an exception if needed, and finally returns the `OutputMessage` to the caller.
 
 Protocol methods are public methods and can be called from convenience methods or by client-users.
 
 The common patterns highlighted here include:
+
 1. Indicating which reponse status codes the service considers successful for this operation by setting a `MessageClassifier`
-1. Calling a helper method to create the `PipelineMessage` and `MessageRequest` specific to the service operation
+1. Calling a helper method to create the `PipelineMessage` and `PipelineRequest` specific to the service operation
 1. Sending the message by calling `ClientPipeline.Send`
-1. Checking `MessageResponse.IsError` and throwing an `ClientRequestException` if needed
-1. Packaging the low-level `PipelineResponse` into a `Result` to return to the caller.
+1. Checking `PipelineResponse.IsError` and throwing an `ClientRequestException` if needed
+1. Packaging the low-level `PipelineResponse` into a `OutputMessage` to return to the caller.
 
 #### Message and request creation
 
-In the example, the protocol method calls a private `CreateGetLocationRequest` helper method to create the message populated with a `MessageRequest` that will work with the transport that the pipeline contains.  This method could be implemented as follows:
+In the example, the protocol method calls a private `CreateGetLocationRequest` helper method to create the message populated with a `PipelineRequest` that will work with the transport that the pipeline contains.  This method could be implemented as follows:
 
 ```csharp
     private PipelineMessage CreateGetLocationRequest(string ipAddress, RequestOptions options)
@@ -263,6 +268,7 @@ In the example, the protocol method calls a private `CreateGetLocationRequest` h
 ```
 
 Note the following common patterns:
+
 1. Creating the message via the pipeline
 1. Applying `RequestOptions` to the message
 1. Setting the request method
@@ -274,7 +280,7 @@ Although the example `MapsClient` only illustrates reading response content and 
 
 #### Reading and writing message content
 
-In the example `MapsClient`, we've included a strongly-typed output model `IPAddressCountryPair`.  This represents the schema for the service's response to the [Geolocate IP Operation](https://learn.microsoft.com/en-us/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP).  If you consult the [REST API documentation for the response body schema](https://learn.microsoft.com/en-us/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP#ipaddresstolocationresult), you'll see that the response schema describes a pair of values -- the input `IPAddress` is paired with the `CountryRegion` that the service returns to "geolocate" the IP address, i.e. to identify the country where the device using the specified IP address is located.
+In the example `MapsClient`, we've included a strongly-typed output model `IPAddressCountryPair`.  This represents the schema for the service's response to the [Geolocate IP Operation](https://learn.microsoft.com/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP).  If you consult the [REST API documentation for the response body schema](https://learn.microsoft.com/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP#ipaddresstolocationresult), you'll see that the response schema describes a pair of values -- the input `IPAddress` is paired with the `CountryRegion` that the service returns to "geolocate" the IP address, i.e. to identify the country where the device using the specified IP address is located.
 
 The following sample sketches out what an implementation of the `IPAddressCountryPair` output model might look like:
 
@@ -319,9 +325,10 @@ public class IPAddressCountryPair : IJsonModel<IPAddressCountryPair>
 ```
 
 Common patterns highlighted here include:
+
 1. Model implements `IJsonModel<T>` interface
-1. Model provides implementations of `IJsonModel<T>.Create` and `IModel<T>.Create` methods
-1. Model provides implementations of `IJsonModel<T>.Write` and `IModel<T>.Write` methods
+1. Model provides implementations of `IJsonModel<T>.Create` and `IPersistableModel<T>.Create` methods
+1. Model provides implementations of `IJsonModel<T>.Write` and `IPersistableModel<T>.Write` methods
 
 `IJsonModel<T>.Create` is ultimately what's called to create the strongly-typed output model from the response body in ClientModel client code, albiet typically through convenience APIs such as cast operators or by using the `ModelReaderWriter` type.  For input models, `IJsonModel<T>.Write` is what's ultimately called to create the request body to send to the service.
 
@@ -329,13 +336,13 @@ Further details of the APIs used to read and write ClientModel clients' strongly
 
 #### Handling the service response
 
-Much of the logic needed to handle the service response is managed in the `PipelineTransport` and policies in the pipeline such as `ResponseBufferingPolicy`.  Today, `PipelineTransport` is responsible for invoking the `MessageClassifer.IsError` method after the response is set on the message in order to populate the `MessageResponse.IsError` property.  The `ResponseBufferingPolicy` does the work needed to read the content out of the response network stream into a buffered `MemoryStream`, to make it easier for client-authors and client-users accessing lower-level APIs when reading the response body.
+Much of the logic needed to handle the service response is managed in the `PipelineTransport` and policies in the pipeline such as `ResponseBufferingPolicy`.  Today, `PipelineTransport` is responsible for invoking the `MessageClassifier.IsErrorResponse` method after the response is set on the message in order to populate the `PipelineResponse.IsError` property.  The `ResponseBufferingPolicy` does the work needed to read the content out of the response network stream into a buffered `MemoryStream`, to make it easier for client-authors and client-users accessing lower-level APIs when reading the response body.
 
-Options for configuring the message classifer and network timeouts are exposed on `PipelineOptions` and `RequestOptions` types.  Opting-out of response buffering is uncommon, so APIs enabling this are exposed only on the `ResponseBufferingPolicy` itself.
+Options for configuring the message classifier and network timeouts are exposed on `PipelineOptions` and `RequestOptions` types.  Opting-out of response buffering is uncommon, so APIs enabling this are exposed only on the `ResponseBufferingPolicy` itself.
 
 Please note that these options APIs are still in preview and subject to change.
 
-Logic for deciding how to expose an error response to the client-user, and package successful responses into strongly typed `Result<T>` return types is shown in client implementation samples in the preceeding sections.
+Logic for deciding how to expose an error response to the client-user, and package successful responses into strongly typed `OutputMessage<T>` return types is shown in client implementation samples in the preceding sections.
 
 ### Lower-level control and flexibility
 
