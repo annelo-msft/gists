@@ -26,7 +26,7 @@ Finally, building on the user and API categorizations above, we introduce termin
 
 **Convenience methods** are service methods that take a strongly-typed model representing schematized data needed to communicate with the cloud service as input, and return a strongly-typed model as output.  Having strongly-typed models that represent service concepts provides a layer of convenience over working with raw JSON, and unifies the experience for users of ClientModel clients when cloud services differ in wire-formats.  That is, a client-user can learn the patterns for strongly-typed models that ClientModel clients provide, and use them together without having to reason about whether a cloud service represents resources using JSON or XML.
 
-**Protocol methods** are service methods that provide very little convenience over the raw HTTP APIs a cloud service exposes.  They have the advantage of being straightforward to generate from a service's API description, and represent request and response message bodies using types that are very thin layers over raw JSON/binary/other formats.  They require users to read and understand the service's HTTP API documentation directly, rather than relying on the client to provide developer conveniences via strongly-typing service schemas.  In the usage samples we'll share, we show that convience methods are implemented by calling through to the lower-level protocol methods.
+**Protocol methods** are service methods that provide very little convenience over the raw HTTP APIs a cloud service exposes.  They have the advantage of being straightforward to generate from a service's API description, and represent request and response message bodies using types that are very thin layers over raw JSON/binary/other formats.  They require users to read and understand the service's HTTP API documentation directly, rather than relying on the client to provide developer conveniences via strongly-typing service schemas.  In the usage samples we'll share, we show that convenience methods are implemented by calling through to the lower-level protocol methods.
 
 ## Client-user APIs
 
@@ -132,19 +132,7 @@ The following illustrates the constructor implementation for our example client:
         _credential = credential;
         _apiVersion = options.Version;
 
-        if (options.PerCallPolicies is null)
-        {
-            options.PerCallPolicies = new PipelinePolicy[1];
-        }
-        else
-        {
-            var perCallPolicies = new PipelinePolicy[options.PerCallPolicies.Length + 1];
-            options.PerCallPolicies.CopyTo(perCallPolicies.AsSpan());
-        }
-
-        options.PerCallPolicies[options.PerCallPolicies.Length - 1] = new KeyCredentialAuthenticationPolicy(_credential, "subscription-key");
-
-        _pipeline = ClientPipeline.Create(options);
+        _pipeline = ClientPipeline.Create(options, new KeyCredentialAuthenticationPolicy(_credential, "subscription-key"));
     }
 ```
 
@@ -165,7 +153,7 @@ As discussed in prior sections, ClientModel clients provide two types of service
 In our `MapsClient` example, the following shows how the `GetCountryCode` convenience method might be implemented:
 
 ```csharp
-    public virtual Result<IPAddressCountryPair> GetCountryCode(IPAddress ipAddress, CancellationToken cancellationToken = default)
+    public virtual OutputMessage<IPAddressCountryPair> GetCountryCode(IPAddress ipAddress, CancellationToken cancellationToken = default)
     {
         if (ipAddress is null) throw new ArgumentNullException(nameof(ipAddress));
 
@@ -173,12 +161,12 @@ In our `MapsClient` example, the following shows how the `GetCountryCode` conven
             new RequestOptions() { CancellationToken = cancellationToken } :
             new RequestOptions();
 
-        Result result = GetCountryCode(ipAddress.ToString(), options);
+        OutputMessage output = GetCountryCode(ipAddress.ToString(), options);
 
-        MessageResponse response = result.GetRawResponse();
+        PipelineResponse response = output.GetRawResponse();
         IPAddressCountryPair value = IPAddressCountryPair.FromResponse(response);
 
-        return Result.FromValue(value, response);
+        return OutputMessage.FromValue(value, response);
     }
 ```
 
@@ -193,30 +181,29 @@ The common patterns highlighted here include:
 
 #### Protocol method
 
-The protocol method for the `GetCountryCode` operation corresponds closely to the operation as defined in the service's REST API: https://learn.microsoft.com/en-us/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP.  Path and query parameters in the service API correspond to primitive-type input parameters in the client's service method, and any content meant to go in the message body would correspond to a `InputContent` input parameter (not shown here).  The return type is a `OutputMessage`, on which `GetRawResponse()` can be called to get access to the `PipelineResponse.Content` property, where `InputContent` provides a thin layer of convenience over the raw response content.
+The protocol method for the `GetCountryCode` operation corresponds closely to the operation as defined in the service's REST API: https://learn.microsoft.com/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP.  Path and query parameters in the service API correspond to primitive-type input parameters in the client's service method, and any content meant to go in the message body would correspond to a `InputContent` input parameter (not shown here).  The return type is a `OutputMessage`, on which `GetRawResponse()` can be called to get access to the `PipelineResponse.Content` property, where `InputContent` provides a thin layer of convenience over the raw response content.
 
 The following shows how the `GetCountryCode` protocol method could be implemented on the example client:
 
 ```csharp
-    public virtual Result GetCountryCode(string ipAddress, RequestOptions options = null)
+    public virtual OutputMessage GetCountryCode(string ipAddress, RequestOptions options = null)
     {
         if (ipAddress is null) throw new ArgumentNullException(nameof(ipAddress));
 
         options ??= new RequestOptions();
-        options.MessageClassifier = new ResponseStatusClassifier(stackalloc ushort[] { 200 });
 
         using PipelineMessage message = CreateGetLocationRequest(ipAddress, options);
 
         _pipeline.Send(message);
 
-        MessageResponse response = message.Response;
+        PipelineResponse response = message.Response;
 
         if (response.IsError && options.ErrorBehavior == ErrorBehavior.Default)
         {
             throw new ClientRequestException(response);
         }
 
-        return Result.FromResponse(response);
+        return OutputMessage.FromResponse(response);
     }
 ```
 
@@ -226,7 +213,7 @@ Protocol methods are public methods and can be called from convenience methods o
 
 The common patterns highlighted here include:
 
-1. Indicating which reponse status codes the service considers successful for this operation by setting a `MessageClassifier`
+1. Indicating which response status codes the service considers successful for this operation by setting a `MessageClassifier`
 1. Calling a helper method to create the `PipelineMessage` and `PipelineRequest` specific to the service operation
 1. Sending the message by calling `ClientPipeline.Send`
 1. Checking `PipelineResponse.IsError` and throwing an `ClientRequestException` if needed
@@ -240,9 +227,9 @@ In the example, the protocol method calls a private `CreateGetLocationRequest` h
     private PipelineMessage CreateGetLocationRequest(string ipAddress, RequestOptions options)
     {
         PipelineMessage message = _pipeline.CreateMessage();
-        options.Apply(message);
+        message.Apply(options, new ResponseStatusClassifier(stackalloc ushort[] { 200 }));
 
-        MessageRequest request = message.Request;
+        PipelineRequest request = message.Request;
         request.Method = "GET";
 
         UriBuilder uriBuilder = new(_endpoint.ToString());
@@ -330,7 +317,7 @@ Common patterns highlighted here include:
 1. Model provides implementations of `IJsonModel<T>.Create` and `IPersistableModel<T>.Create` methods
 1. Model provides implementations of `IJsonModel<T>.Write` and `IPersistableModel<T>.Write` methods
 
-`IJsonModel<T>.Create` is ultimately what's called to create the strongly-typed output model from the response body in ClientModel client code, albiet typically through convenience APIs such as cast operators or by using the `ModelReaderWriter` type.  For input models, `IJsonModel<T>.Write` is what's ultimately called to create the request body to send to the service.
+`IJsonModel<T>.Create` is ultimately what's called to create the strongly-typed output model from the response body in ClientModel client code, albeit typically through convenience APIs such as cast operators or by using the `ModelReaderWriter` type.  For input models, `IJsonModel<T>.Write` is what's ultimately called to create the request body to send to the service.
 
 Further details of the APIs used to read and write ClientModel clients' strongly-typed models can be found in [ModelReaderWriter](https://gist.github.com/m-nash/626adc8b6e79eaa8c835f93fa156370c).
 
@@ -338,7 +325,7 @@ Further details of the APIs used to read and write ClientModel clients' strongly
 
 Much of the logic needed to handle the service response is managed in the `PipelineTransport` and policies in the pipeline such as `ResponseBufferingPolicy`.  Today, `PipelineTransport` is responsible for invoking the `MessageClassifier.IsErrorResponse` method after the response is set on the message in order to populate the `PipelineResponse.IsError` property.  The `ResponseBufferingPolicy` does the work needed to read the content out of the response network stream into a buffered `MemoryStream`, to make it easier for client-authors and client-users accessing lower-level APIs when reading the response body.
 
-Options for configuring the message classifier and network timeouts are exposed on `PipelineOptions` and `RequestOptions` types.  Opting-out of response buffering is uncommon, so APIs enabling this are exposed only on the `ResponseBufferingPolicy` itself.
+Options for configuring the message classifier and network timeouts are exposed on `ServiceClientOptions` and `RequestOptions` types.  Opting-out of response buffering is uncommon, so APIs enabling this are exposed only on the `ResponseBufferingPolicy` itself.
 
 Please note that these options APIs are still in preview and subject to change.
 
@@ -350,12 +337,10 @@ As discussed in the introductory concepts section, some of the types in ClientMo
 
 #### Options
 
-Two options types are provided: a `PipelineOptions` type that enables configuring the pipeline, and a `RequestOptions` type that can be passed to protocol methods to change the pipeline for the duration of the service method invocation, or to change how the protocol method itself functions.  Both client-users and client-authors can use these types to change client and service method behavior, and precedence rules are built into these types.  Users of these types can set options values, but once they are read by the client or pipeline, the options are frozen and cannot be changed.
-
-These APIs are still in preview, but are presented here to obtain early feedback.
+Two options types are provided: a `ServiceClientOptions` type that enables configuring the client instance, and a `RequestOptions` type that can be passed to protocol methods to change options for the duration of the service method invocation, or to change how the protocol method itself functions.  Both client-users and client-authors can use these types to change client and service method behavior, and precedence rules are built into these types.  
 
 #### Customizing the pipeline
 
-Both client-authors and client-users can customize the pipeline, either for the entire client or for the duration of a service method's invocation.  This is enabled by setting `PipelinePolicy` instances on `PipelineOptions` or `RequestOptions` via the different policy members on those types.  When `ClientPipeline.Create` is called in a ClientModel client constructor, policies specified on the `PipelineOptions` instance passed to `Create` will be built into the client's pipeline.
+Both client-authors and client-users can customize the pipeline, either for the entire client or for the duration of a service method's invocation.  This is enabled by setting `PipelinePolicy` instances on `ServiceClientOptions` or `RequestOptions` via the different policy members on those types.  When `ClientPipeline.Create` is called in a ClientModel client constructor, policies specified on the `ServiceClientOptions` instance passed to `Create` will be built into the client's pipeline.
 
 Implementors of custom policies inherit from `PipelinePolicy` and implement its abstract `Process` and `ProcessAsync` methods.  Both these methods take a `PipelineMessage` and are expected to call `PipelineProcessor.ProcessNext` or `PipelineProcessor.ProcessNextAsync` to pass control to the next policy in the pipeline.  A policy implementation can modify the request (e.g. to add a header) before calling `ProcessNext`, and will have access to the buffered response after control returns from the `ProcessNext` call.  Policies can be inserted into the pipeline before the retry policy by adding them to `PipelineOptions.PerCallPolicies` or after the retry policy by adding them to `PipelineOptions.PerTryPolicies`.
