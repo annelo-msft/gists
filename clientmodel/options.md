@@ -75,24 +75,105 @@ Precedence rules are: client-user option overrides client-author option override
 
 ## Usage Samples
 
-In this section, we discuss how end users of ClientModel clients can configure those clients for their specific needs.
+In this section, we share samples illustrating how end-users of ClientModel clients can configure those clients for their specific needs.
 
-## Client-scope configuration
+### Client-scope configuration
 
-### Changing the service version
+#### Changing the service version
 
-### Setting the network timeout
+```csharp
+// Service version is available on client subtype of ServiceClientOptions
+MapsClientOptions options = new MapsClientOptions(MapsClientOptions.ServiceVersion.V1);
 
-### Adding a policy to the client pipeline
+MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential, options);
 
-### Overriding the default transport
+try
+{
+    IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
+    OutputMessage<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
 
-## Operation-scope configuration
+    Assert.AreEqual("US", output.Value.CountryRegion.IsoCode);
+    Assert.AreEqual(IPAddress.Parse("2001:4898:80e8:b::189"), output.Value.IpAddress);
+}
+catch (ClientRequestException e)
+{
+    Assert.Fail($"Error: Response status code: '{e.Status}'");
+}
+```
 
-### Passing a CancellationToken to a service method
+#### Setting the network timeout
 
-### Adding a header to a request
+```csharp
+MapsClientOptions options = new MapsClientOptions();
+options.NetworkTimeout = TimeSpan.FromSeconds(2);
 
-### Adding a policy to the pipeline for the duration of an operation
+MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential, options);
 
-### Changing the behavior of a service method for an error response
+try
+{
+    IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
+    OutputMessage<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
+
+    Assert.AreEqual("US", output.Value.CountryRegion.IsoCode);
+    Assert.AreEqual(IPAddress.Parse("2001:4898:80e8:b::189"), output.Value.IpAddress);
+}
+catch (ClientRequestException e)
+{
+    Assert.Fail($"Error: Response status code: '{e.Status}'");
+}
+```
+
+#### Adding a policy to the client pipeline
+
+```csharp
+MapsClientOptions options = new MapsClientOptions();
+CustomPolicy customPolicy = new CustomPolicy();
+options.AddPolicy(customPolicy, PipelinePosition.PerCall);
+
+MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential, options);
+
+try
+{
+    IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
+    OutputMessage<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
+
+    Assert.IsTrue(customPolicy.ProcessedMessage);
+}
+catch (ClientRequestException e)
+{
+    Assert.Fail($"Error: Response status code: '{e.Status}'");
+}
+```
+
+#### Overriding the default transport
+
+```csharp
+MapsClientOptions options = new MapsClientOptions();
+options.Transport = new CustomTransport();
+
+MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential, options);
+
+try
+{
+    IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
+    OutputMessage<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
+
+    PipelineResponse reponse = output.GetRawResponse();
+
+    Assert.AreEqual("CustomTransportResponse", reponse.ReasonPhrase);
+}
+catch (ClientRequestException e)
+{
+    Assert.Fail($"Error: Response status code: '{e.Status}'");
+}
+```
+
+### Method-scope configuration
+
+#### Passing a CancellationToken to a service method
+
+#### Adding a header to a request
+
+#### Adding a policy to the pipeline for the duration of an operation
+
+#### Changing the behavior of a service method for an error response
