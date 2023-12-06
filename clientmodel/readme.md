@@ -337,7 +337,9 @@ As discussed in the introductory concepts section, some of the types in ClientMo
 
 #### Options
 
-Two options types are provided: a `ServiceClientOptions` type that enables configuring the client instance, and a `RequestOptions` type that can be passed to protocol methods to change options for the duration of the service method invocation, or to change how the protocol method itself functions.  Both client-users and client-authors can use these types to change client and service method behavior, and precedence rules are built into these types.  
+Two options types are provided: a `ServiceClientOptions` type that enables configuring the client instance, and a `RequestOptions` type that can be passed to protocol methods to change options for the duration of the service method invocation, or to change how the protocol method itself functions.  Both client-users and client-authors can use these types to change client and service method behavior, and precedence rules are built into these types.
+
+A full discussion of options types available to both client-users and client-authors can be found in [Configuring ClientModel clients](https://github.com/annelo-msft/gists/blob/main/clientmodel/options.md).
 
 #### Customizing the pipeline
 
