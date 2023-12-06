@@ -181,7 +181,7 @@ The common patterns highlighted here include:
 
 #### Protocol method
 
-The protocol method for the `GetCountryCode` operation corresponds closely to the operation as defined in the service's REST API: https://learn.microsoft.com/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP.  Path and query parameters in the service API correspond to primitive-type input parameters in the client's service method, and any content meant to go in the message body would correspond to a `InputContent` input parameter (not shown here).  The return type is a `OutputMessage`, on which `GetRawResponse()` can be called to get access to the `PipelineResponse.Content` property, where `InputContent` provides a thin layer of convenience over the raw response content.
+The protocol method for the `GetCountryCode` operation corresponds closely to the operation as defined in the service's REST API for the [Geolocation - Get IP To Location](https://learn.microsoft.com/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP) operation.  Path and query parameters in the service API correspond to primitive-type input parameters in the client's service method, and any content meant to go in the message body would correspond to a `InputContent` input parameter (not shown here).  The return type is a `OutputMessage`, on which `GetRawResponse()` can be called to get access to the `PipelineResponse.Content` property, where `InputContent` provides a thin layer of convenience over the raw response content.
 
 The following shows how the `GetCountryCode` protocol method could be implemented on the example client:
 

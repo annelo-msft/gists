@@ -172,8 +172,99 @@ catch (ClientRequestException e)
 
 #### Passing a CancellationToken to a service method
 
+```csharp
+string key = Environment.GetEnvironmentVariable("MAPS_API_KEY") ?? string.Empty;
+KeyCredential credential = new KeyCredential(key);
+
+MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential);
+
+try
+{
+    IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
+
+    RequestOptions options = new RequestOptions();
+    options.CancellationToken = new CancellationToken();
+
+    // Call protocol method in order to pass RequestOptions
+    OutputMessage output = client.GetCountryCode(ipAddress.ToString(), options);
+}
+catch (ClientRequestException e)
+{
+    Assert.Fail($"Error: Response status code: '{e.Status}'");
+}
+```
+
 #### Adding a header to a request
+
+```csharp
+string key = Environment.GetEnvironmentVariable("MAPS_API_KEY") ?? string.Empty;
+KeyCredential credential = new KeyCredential(key);
+
+MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential);
+
+try
+{
+    IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
+
+    RequestOptions options = new RequestOptions();
+    options.RequestHeaders.Add("CustomHeader", "CustomHeaderValue");
+
+    // Call protocol method in order to pass RequestOptions
+    OutputMessage output = client.GetCountryCode(ipAddress.ToString(), options);
+}
+catch (ClientRequestException e)
+{
+    Assert.Fail($"Error: Response status code: '{e.Status}'");
+}
+```
 
 #### Adding a policy to the pipeline for the duration of an operation
 
+```csharp
+string key = Environment.GetEnvironmentVariable("MAPS_API_KEY") ?? string.Empty;
+KeyCredential credential = new KeyCredential(key);
+
+MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential);
+
+try
+{
+    IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
+
+    RequestOptions options = new RequestOptions();
+    CustomPolicy customPolicy = new CustomPolicy();
+    options.AddPolicy(customPolicy, PipelinePosition.PerCall);
+
+    // Call protocol method in order to pass RequestOptions
+    OutputMessage output = client.GetCountryCode(ipAddress.ToString(), options);
+
+    Assert.IsTrue(customPolicy.ProcessedMessage);
+}
+catch (ClientRequestException e)
+{
+    Assert.Fail($"Error: Response status code: '{e.Status}'");
+}
+```
+
 #### Changing the behavior of a service method for an error response
+
+```csharp
+string key = Environment.GetEnvironmentVariable("MAPS_API_KEY") ?? string.Empty;
+KeyCredential credential = new KeyCredential(key);
+
+MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential);
+
+try
+{
+    IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
+
+    RequestOptions options = new RequestOptions();
+    options.ErrorBehavior = ErrorBehavior.NoThrow;
+
+    // Call protocol method in order to pass RequestOptions
+    OutputMessage output = client.GetCountryCode(ipAddress.ToString(), options);
+}
+catch (ClientRequestException e)
+{
+    Assert.Fail($"Error: Response status code: '{e.Status}'");
+}
+```
