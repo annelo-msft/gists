@@ -1,6 +1,6 @@
 # Configuring ClientModel clients
 
-Two options types are provided: a `ServiceClientOptions` type that enables configuring the client instance, and a `RequestOptions` type that can be passed to protocol methods to change options for the duration of the service method invocation, or to change how the protocol method itself functions.  Both client-users and client-authors can use these types to change client and service method behavior, and precedence rules are built into these types.
+Two options types are provided: a `ServiceClientOptions` type that enables configuring the client instance, and a `RequestOptions` type that can be passed to protocol methods to change options for the duration of the service method invocation, or to change how the protocol method itself functions.  Both [client-users and client-authors](https://github.com/annelo-msft/gists/blob/main/clientmodel/readme.md#two-user-groups) can use these types to change client and service method behavior, and precedence rules are built into these types.
 
 ## Client-user options
 
@@ -57,7 +57,7 @@ Client-authors need the same knobs as end-users to override Core ClientModel def
 
 Compiling the above into a table view to make it easy to compare how options can be specified by different users in a side-by-side format.
 
-Precedence rules are: client-user option overrides client-author option overrides Core default.
+Precedence rules are: [client-user](https://github.com/annelo-msft/gists/blob/main/clientmodel/readme.md#two-user-groups) option overrides [client-author](https://github.com/annelo-msft/gists/blob/main/clientmodel/readme.md#two-user-groups) option overrides the ClientModel Core default.
 
 | **Option**                   | **client-user**                    | **client-author**       | **Core default**     |
 |------------------------------|------------------------------------|-------------------------|----------------------|
@@ -75,7 +75,7 @@ Precedence rules are: client-user option overrides client-author option override
 
 ## Usage Samples
 
-In this section, we share samples illustrating how end-users of ClientModel clients can configure those clients for their specific needs.
+In this section, we share samples illustrating how end-users of ClientModel clients ([client-users](https://github.com/annelo-msft/gists/blob/main/clientmodel/readme.md#two-user-groups)) can configure those clients for their specific needs.
 
 ### Client-scope configuration
 
