@@ -1,12 +1,12 @@
 # Configuring ClientModel clients
 
-Two options types are provided: a `ServiceClientOptions` type that enables configuring the client instance, and a `RequestOptions` type that can be passed to protocol methods to change options for the duration of the service method invocation, or to change how the protocol method itself functions.  Both [client-users and client-authors](https://github.com/annelo-msft/gists/blob/main/clientmodel/readme.md#two-user-groups) can use these types to change client and service method behavior, and precedence rules are built into these types.
+Two options types are provided: a `ClientPipelineOptions` type that enables configuring the client instance, and a `RequestOptions` type that can be passed to protocol methods to change options for the duration of the service method invocation, or to change how the protocol method itself functions.  Both [client-users and client-authors](https://github.com/annelo-msft/gists/blob/main/clientmodel/readme.md#two-user-groups) can use these types to change client and service method behavior, and precedence rules are built into these types.
 
 ## Client-user options
 
 ### Client-scope options
 
-ClientModel clients provide a type that inherits from `ServiceClientOptions` to provide a client-specific options type used to set options with a client-wide scope including:
+ClientModel clients provide a type that inherits from `ClientPipelineOptions` to provide a client-specific options type used to set options with a client-wide scope including:
 
 - Pipeline customizations
   - Custom per-call and per-retry policies via the `options.AddPolicy` method
@@ -32,11 +32,11 @@ Client-authors need the same knobs as end-users to override Core ClientModel def
 ### Client-scope options
 
 - Custom per-call and per-retry pipeline policies
-  - Passed to `pipeline.Create` as separate parameters from `ServiceClientOptions`
+  - Passed to `pipeline.Create` as separate parameters from `ClientPipelineOptions`
 - Custom RetryPolicy and custom transport in pipeline
   - Not enabled today, but if needed, an overload of `ClientPipeline.Create` can be provided that takes these values
 - Service-specific options like `ServiceVersion`
-  - Client-wide defaults are set in the `ServiceClientOptions` subtype itself
+  - Client-wide defaults are set in the `ClientPipelineOptions` subtype itself
 - Client-wide `NetworkTimeout` override
   - Not enabled today, but since this is a parameter passed to the ResponseBufferingPolicy constructor, we could add an overload of  `ClientPipeline.Create` that allows overriding the default buffering policy and let the client-author construct it directly to set this value.
 
@@ -51,7 +51,7 @@ Client-authors need the same knobs as end-users to override Core ClientModel def
     - Overloads of `message.Apply(options)` that take custom policies
     - Letting client-authors add custom policies to the message property bag
 - Response error classification
-  - A `MessageClassifier` specific to the service operation is passed via `message.Apply(options)`
+  - A `PipelineMessageClassifier` specific to the service operation is passed via `message.Apply(options)`
 
 ## Tabular Overview of Options
 
@@ -61,15 +61,15 @@ Precedence rules are: [client-user](https://github.com/annelo-msft/gists/blob/ma
 
 | **Option**                   | **client-user**                    | **client-author**       | **Core default**     |
 |------------------------------|------------------------------------|-------------------------|----------------------|
-| Client-scope pipeline policy | `ServiceClientOptions.AddPolicy`   | `ClientPipeline.Create` | n/a                  |
-| Client-scope retry policy    | `ServiceClientOptions.RetryPolicy` | n/a                     | `RetryRequestPolicy` |
-| Client-scope transport       | `ServiceClientOptions.Transport`   | n/a                     |  `HttpClientPipelineTransport`    |
-| Client-scope ServiceVersion     | `ServiceClientOptions` ctor | `ServiceClientOptions` internal member                    |  n/a   |
-| Client-scope network timeout | `ServiceClientOptions.NetworkTimeout`  |  `ResponseBufferingPolicy` ctor   |  internal `ResponseBufferingPolicy.DefaultNetworkTimeout`  |
-| Client-scope error response classification | n/a | n/a | internal `MessageClassifier.Default` |
+| Client-scope pipeline policy | `ClientPipelineOptions.AddPolicy`   | `ClientPipeline.Create` | n/a                  |
+| Client-scope retry policy    | `ClientPipelineOptions.RetryPolicy` | n/a                     | `ClientRetryPolicy` |
+| Client-scope transport       | `ClientPipelineOptions.Transport`   | n/a                     |  `HttpClientPipelineTransport`    |
+| Client-scope ServiceVersion     | `ClientPipelineOptions` ctor | `ClientPipelineOptions` internal member                    |  n/a   |
+| Client-scope network timeout | `ClientPipelineOptions.NetworkTimeout`  |  `ResponseBufferingPolicy` ctor   |  internal `ResponseBufferingPolicy.DefaultNetworkTimeout`  |
+| Client-scope error response classification | n/a | n/a | internal `PipelineMessageClassifier.Default` |
 | Method-scope request headers | `RequestOptions.RequestHeaders` | `PipelineRequest.Headers` |  n/a   |
 | Method-scope CancellationToken | `RequestOptions.CancellationToken` | n/a |  n/a   |
-| Method-scope error response behavior | `RequestOptions.ErrorBehavior` | service method implementation |  `ErrorBehavior.Default` |
+| Method-scope error response behavior | `RequestOptions.ErrorBehavior` | service method implementation |  `ClientErrorBehaviors.Default` |
 | Method-scope pipeline policy | `RequestOptions.AddPolicy` | n/a |  n/a |
 | Method-scope error response classification | n/a | `PipelineMessage.Apply(options, classifier)` |  n/a |
 
@@ -90,12 +90,12 @@ MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), crede
 try
 {
     IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
-    OutputMessage<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
+    ClientResult<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
 
     Assert.AreEqual("US", output.Value.CountryRegion.IsoCode);
     Assert.AreEqual(IPAddress.Parse("2001:4898:80e8:b::189"), output.Value.IpAddress);
 }
-catch (ClientRequestException e)
+catch (ClientResultException e)
 {
     Assert.Fail($"Error: Response status code: '{e.Status}'");
 }
@@ -112,12 +112,12 @@ MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), crede
 try
 {
     IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
-    OutputMessage<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
+    ClientResult<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
 
     Assert.AreEqual("US", output.Value.CountryRegion.IsoCode);
     Assert.AreEqual(IPAddress.Parse("2001:4898:80e8:b::189"), output.Value.IpAddress);
 }
-catch (ClientRequestException e)
+catch (ClientResultException e)
 {
     Assert.Fail($"Error: Response status code: '{e.Status}'");
 }
@@ -135,11 +135,11 @@ MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), crede
 try
 {
     IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
-    OutputMessage<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
+    ClientResult<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
 
     Assert.IsTrue(customPolicy.ProcessedMessage);
 }
-catch (ClientRequestException e)
+catch (ClientResultException e)
 {
     Assert.Fail($"Error: Response status code: '{e.Status}'");
 }
@@ -156,13 +156,13 @@ MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), crede
 try
 {
     IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
-    OutputMessage<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
+    ClientResult<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
 
     PipelineResponse reponse = output.GetRawResponse();
 
     Assert.AreEqual("CustomTransportResponse", reponse.ReasonPhrase);
 }
-catch (ClientRequestException e)
+catch (ClientResultException e)
 {
     Assert.Fail($"Error: Response status code: '{e.Status}'");
 }
@@ -174,7 +174,7 @@ catch (ClientRequestException e)
 
 ```csharp
 string key = Environment.GetEnvironmentVariable("MAPS_API_KEY") ?? string.Empty;
-KeyCredential credential = new KeyCredential(key);
+ApiKeyCredential credential = new ApiKeyCredential(key);
 
 MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential);
 
@@ -186,9 +186,9 @@ try
     options.CancellationToken = new CancellationToken();
 
     // Call protocol method in order to pass RequestOptions
-    OutputMessage output = client.GetCountryCode(ipAddress.ToString(), options);
+    ClientResult output = client.GetCountryCode(ipAddress.ToString(), options);
 }
-catch (ClientRequestException e)
+catch (ClientResultException e)
 {
     Assert.Fail($"Error: Response status code: '{e.Status}'");
 }
@@ -198,7 +198,7 @@ catch (ClientRequestException e)
 
 ```csharp
 string key = Environment.GetEnvironmentVariable("MAPS_API_KEY") ?? string.Empty;
-KeyCredential credential = new KeyCredential(key);
+ApiKeyCredential credential = new ApiKeyCredential(key);
 
 MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential);
 
@@ -210,9 +210,9 @@ try
     options.RequestHeaders.Add("CustomHeader", "CustomHeaderValue");
 
     // Call protocol method in order to pass RequestOptions
-    OutputMessage output = client.GetCountryCode(ipAddress.ToString(), options);
+    ClientResult output = client.GetCountryCode(ipAddress.ToString(), options);
 }
-catch (ClientRequestException e)
+catch (ClientResultException e)
 {
     Assert.Fail($"Error: Response status code: '{e.Status}'");
 }
@@ -222,7 +222,7 @@ catch (ClientRequestException e)
 
 ```csharp
 string key = Environment.GetEnvironmentVariable("MAPS_API_KEY") ?? string.Empty;
-KeyCredential credential = new KeyCredential(key);
+ApiKeyCredential credential = new ApiKeyCredential(key);
 
 MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential);
 
@@ -235,11 +235,11 @@ try
     options.AddPolicy(customPolicy, PipelinePosition.PerCall);
 
     // Call protocol method in order to pass RequestOptions
-    OutputMessage output = client.GetCountryCode(ipAddress.ToString(), options);
+    ClientResult output = client.GetCountryCode(ipAddress.ToString(), options);
 
     Assert.IsTrue(customPolicy.ProcessedMessage);
 }
-catch (ClientRequestException e)
+catch (ClientResultException e)
 {
     Assert.Fail($"Error: Response status code: '{e.Status}'");
 }
@@ -249,7 +249,7 @@ catch (ClientRequestException e)
 
 ```csharp
 string key = Environment.GetEnvironmentVariable("MAPS_API_KEY") ?? string.Empty;
-KeyCredential credential = new KeyCredential(key);
+ApiKeyCredential credential = new ApiKeyCredential(key);
 
 MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential);
 
@@ -261,9 +261,9 @@ try
     options.ErrorBehavior = ErrorBehavior.NoThrow;
 
     // Call protocol method in order to pass RequestOptions
-    OutputMessage output = client.GetCountryCode(ipAddress.ToString(), options);
+    ClientResult output = client.GetCountryCode(ipAddress.ToString(), options);
 }
-catch (ClientRequestException e)
+catch (ClientResultException e)
 {
     Assert.Fail($"Error: Response status code: '{e.Status}'");
 }

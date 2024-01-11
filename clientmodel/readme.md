@@ -43,20 +43,20 @@ using System.Net;
 using System.ClientModel;
 
 string key = Environment.GetEnvironmentVariable("MAPS_API_KEY") ?? string.Empty;
-KeyCredential credential = new KeyCredential(key);
+ApiKeyCredential credential = new ApiKeyCredential(key);
 MapsClient client = new MapsClient(new Uri("https://atlas.microsoft.com"), credential);
 
 try
 {
     IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
+    ClientResult<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
 
-    OutputMessage<IPAddressCountryPair> output = client.GetCountryCode(ipAddress);
     IPAddressCountryPair ipCountryPair = output.Value;
 
     Console.WriteLine($"Response status code: '{output.GetRawResponse().Status}'");
     Console.WriteLine($"IPAddress: '{ipCountryPair.IpAddress}', Country code: '{ipCountryPair.CountryRegion.IsoCode}'");
 }
-catch (ClientRequestException e)
+catch (ClientResultException e)
 {
     Console.WriteLine($"Error: Response status code: '{e.Status}'");
 }
@@ -68,16 +68,16 @@ We highlight the following patterns intended to be common across ClientModel cli
 1. Calling a client's service method (the convenience method `GetCountryCode`)
 1. Obtaining a strongly-typed model that represents a service resource (here, `IPAddressCountryPair`)
 1. Retrieving lower-level details of the protocol if desired, (`result.GetRawResponse()`)
-1. Handling service errors (by catching `ClientRequestException`)
+1. Handling service errors (by catching `ClientResultException`)
 
 ### Client-user types
 
 Types intended for use by client-users in application code are grouped in the `System.ClientModel` namespace.  These include:
 
-- `KeyCredential` - supports (1)
-- `OutputMessage<T>` - supports (2), (3), (4)
-- `OutputMessage` - supports (4)
-- `ClientRequestException` - supports (5)
+- `ApiKeyCredential` - supports (1)
+- `ClientResult<T>` - supports (2), (3), (4)
+- `ClientResult` - supports (4)
+- `ClientResultException` - supports (5)
 
 ## Client-author types
 
@@ -121,7 +121,7 @@ In a ClientModel client constructor, client-authors create an instance of a `Cli
 The following illustrates the constructor implementation for our example client:
 
 ```csharp
-    public MapsClient(Uri endpoint, KeyCredential credential, MapsClientOptions options = default)
+    public MapsClient(Uri endpoint, ApiKeyCredential credential, MapsClientOptions options = default)
     {
         if (endpoint is null) throw new ArgumentNullException(nameof(endpoint));
         if (credential is null) throw new ArgumentNullException(nameof(credential));
@@ -132,7 +132,8 @@ The following illustrates the constructor implementation for our example client:
         _credential = credential;
         _apiVersion = options.Version;
 
-        _pipeline = ClientPipeline.Create(options, new KeyCredentialAuthenticationPolicy(_credential, "subscription-key"));
+        var authenticationPolicy = ApiKeyAuthenticationPolicy.CreateHeaderApiKeyPolicy(credential, "subscription-key");
+        _pipeline = ClientPipeline.Create(options, authenticationPolicy);
     }
 ```
 
@@ -141,7 +142,7 @@ Note that:
 1. The service URI is stored in `_endpoint` for use later when creating requests
 1. The user's credential is stored in `_credential` to use in the authentication policy and/or later request creation
 1. The service's API version is stored so it can be added as a query parameter to request URIs
-1. A `KeyCredentialAuthenticationPolicy` is added to pipeline options provided by the user so it can add headers for authenticating the request when it is sent in the pipeline
+1. A `ApiKeyAuthenticationPolicy` is added to pipeline options provided by the user so it can add headers for authenticating the request when it is sent in the pipeline
 1. The message pipeline is created and stored for later use in service methods.
 
 ### Service methods
@@ -153,40 +154,36 @@ As discussed in prior sections, ClientModel clients provide two types of service
 In our `MapsClient` example, the following shows how the `GetCountryCode` convenience method might be implemented:
 
 ```csharp
-    public virtual OutputMessage<IPAddressCountryPair> GetCountryCode(IPAddress ipAddress, CancellationToken cancellationToken = default)
+    public virtual ClientResult<IPAddressCountryPair> GetCountryCode(IPAddress ipAddress)
     {
         if (ipAddress is null) throw new ArgumentNullException(nameof(ipAddress));
 
-        RequestOptions options = cancellationToken.CanBeCanceled ?
-            new RequestOptions() { CancellationToken = cancellationToken } :
-            new RequestOptions();
-
-        OutputMessage output = GetCountryCode(ipAddress.ToString(), options);
+        ClientResult output = GetCountryCode(ipAddress.ToString());
 
         PipelineResponse response = output.GetRawResponse();
         IPAddressCountryPair value = IPAddressCountryPair.FromResponse(response);
 
-        return OutputMessage.FromValue(value, response);
+        return ClientResult.FromValue(value, response);
     }
 ```
 
-Note that this method calls through to the protocol method `GetCountryCode` and passes a string instead of an `IPAddress`.  It receives the returned `OutputMessage`, obtains the lower-level `PipelineResponse`, and creates a strongly-typed `IPAddressCountryPair` return value from the response content before creating a `OutputMessage<T>` to return to the client-user.
+Note that this method calls through to the protocol method `GetCountryCode` and passes a string instead of an `IPAddress`.  It receives the returned `ClientResult`, obtains the lower-level `PipelineResponse`, and creates a strongly-typed `IPAddressCountryPair` return value from the response content before creating a `ClientResult<T>` to return to the client-user.
 
 The common patterns highlighted here include:
 
-1. Converting strongly-typed inputs to `InputContent` (not shown in this sample)
+1. Converting strongly-typed inputs to `BinaryContent` (not shown in this sample)
 1. Calling the protocol method corresponding to the service operation
-1. Converting the response `InputContent` to a strongly-typed output model
+1. Converting the response `BinaryContent` to a strongly-typed output model
 1. Packaging the output model with the protocol-level response to return to the caller
 
 #### Protocol method
 
-The protocol method for the `GetCountryCode` operation corresponds closely to the operation as defined in the service's REST API for the [Geolocation - Get IP To Location](https://learn.microsoft.com/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP) operation.  Path and query parameters in the service API correspond to primitive-type input parameters in the client's service method, and any content meant to go in the message body would correspond to a `InputContent` input parameter (not shown here).  The return type is a `OutputMessage`, on which `GetRawResponse()` can be called to get access to the `PipelineResponse.Content` property, where `InputContent` provides a thin layer of convenience over the raw response content.
+The protocol method for the `GetCountryCode` operation corresponds closely to the operation as defined in the service's REST API for the [Geolocation - Get IP To Location](https://learn.microsoft.com/rest/api/maps/geolocation/get-ip-to-location?tabs=HTTP) operation.  Path and query parameters in the service API correspond to primitive-type input parameters in the client's service method, and any content meant to go in the message body would correspond to a `BinaryContent` input parameter (not shown here).  The return type is a `ClientResult`, on which `GetRawResponse()` can be called to get access to the `PipelineResponse.Content` property, where `BinaryContent` provides a thin layer of convenience over the raw response content.
 
 The following shows how the `GetCountryCode` protocol method could be implemented on the example client:
 
 ```csharp
-    public virtual OutputMessage GetCountryCode(string ipAddress, RequestOptions options = null)
+    public virtual ClientResult GetCountryCode(string ipAddress, RequestOptions options = null)
     {
         if (ipAddress is null) throw new ArgumentNullException(nameof(ipAddress));
 
@@ -198,26 +195,26 @@ The following shows how the `GetCountryCode` protocol method could be implemente
 
         PipelineResponse response = message.Response;
 
-        if (response.IsError && options.ErrorBehavior == ErrorBehavior.Default)
+        if (response.IsError && options.ErrorOptions == ClientErrorBehaviors.Default)
         {
-            throw new ClientRequestException(response);
+            throw new ClientResultException(response);
         }
 
-        return OutputMessage.FromResponse(response);
+        return ClientResult.FromResponse(response);
     }
 ```
 
-Note that this method adds a `MessageClassifier` to the passed-in `RequestOptions`, creates a message with a request, sends the message via the pipeline, checks whether the response is an error response and throws an exception if needed, and finally returns the `OutputMessage` to the caller.
+Note that this method adds a `PipelineMessageClassifier` to the passed-in `RequestOptions`, creates a message with a request, sends the message via the pipeline, checks whether the response is an error response and throws an exception if needed, and finally returns the `ClientResult` to the caller.
 
 Protocol methods are public methods and can be called from convenience methods or by client-users.
 
 The common patterns highlighted here include:
 
-1. Indicating which response status codes the service considers successful for this operation by setting a `MessageClassifier`
+1. Indicating which response status codes the service considers successful for this operation by setting a `PipelineMessageClassifier`
 1. Calling a helper method to create the `PipelineMessage` and `PipelineRequest` specific to the service operation
 1. Sending the message by calling `ClientPipeline.Send`
-1. Checking `PipelineResponse.IsError` and throwing an `ClientRequestException` if needed
-1. Packaging the low-level `PipelineResponse` into a `OutputMessage` to return to the caller.
+1. Checking `PipelineResponse.IsError` and throwing an `ClientResultException` if needed
+1. Packaging the low-level `PipelineResponse` into a `ClientResult` to return to the caller.
 
 #### Message and request creation
 
@@ -284,7 +281,7 @@ public class IPAddressCountryPair : IJsonModel<IPAddressCountryPair>
 
     public IPAddress IpAddress { get; }
 
-    internal static IPAddressCountryPair FromResponse(MessageResponse response)
+    internal static IPAddressCountryPair FromResponse(PipelineResponse response)
     {
         // Read JSON from response.Body and return IPAddressCountryPair
     }
@@ -325,11 +322,11 @@ Further details of the APIs used to read and write ClientModel clients' strongly
 
 Much of the logic needed to handle the service response is managed in the `PipelineTransport` and policies in the pipeline such as `ResponseBufferingPolicy`.  Today, `PipelineTransport` is responsible for invoking the `MessageClassifier.IsErrorResponse` method after the response is set on the message in order to populate the `PipelineResponse.IsError` property.  The `ResponseBufferingPolicy` does the work needed to read the content out of the response network stream into a buffered `MemoryStream`, to make it easier for client-authors and client-users accessing lower-level APIs when reading the response body.
 
-Options for configuring the message classifier and network timeouts are exposed on `ServiceClientOptions` and `RequestOptions` types.  Opting-out of response buffering is uncommon, so APIs enabling this are exposed only on the `ResponseBufferingPolicy` itself.
+Options for configuring the message classifier and network timeouts are exposed on `ClientPipelineOptions` and `RequestOptions` types.  Opting-out of response buffering is uncommon, so APIs enabling this are exposed only on the `ResponseBufferingPolicy` itself.
 
 Please note that these options APIs are still in preview and subject to change.
 
-Logic for deciding how to expose an error response to the client-user, and package successful responses into strongly typed `OutputMessage<T>` return types is shown in client implementation samples in the preceding sections.
+Logic for deciding how to expose an error response to the client-user, and package successful responses into strongly typed `ClientResult<T>` return types is shown in client implementation samples in the preceding sections.
 
 ### Lower-level control and flexibility
 
@@ -337,12 +334,12 @@ As discussed in the introductory concepts section, some of the types in ClientMo
 
 #### Options
 
-Two options types are provided: a `ServiceClientOptions` type that enables configuring the client instance, and a `RequestOptions` type that can be passed to protocol methods to change options for the duration of the service method invocation, or to change how the protocol method itself functions.  Both client-users and client-authors can use these types to change client and service method behavior, and precedence rules are built into these types.
+Two options types are provided: a `ClientPipelineOptions` type that enables configuring the client instance, and a `RequestOptions` type that can be passed to protocol methods to change options for the duration of the service method invocation, or to change how the protocol method itself functions.  Both client-users and client-authors can use these types to change client and service method behavior, and precedence rules are built into these types.
 
 A full discussion of options types available to both client-users and client-authors can be found in [Configuring ClientModel clients](https://github.com/annelo-msft/gists/blob/main/clientmodel/options.md).
 
 #### Customizing the pipeline
 
-Both client-authors and client-users can customize the pipeline, either for the entire client or for the duration of a service method's invocation.  This is enabled by setting `PipelinePolicy` instances on `ServiceClientOptions` or `RequestOptions` via the different policy members on those types.  When `ClientPipeline.Create` is called in a ClientModel client constructor, policies specified on the `ServiceClientOptions` instance passed to `Create` will be built into the client's pipeline.
+Both client-authors and client-users can customize the pipeline, either for the entire client or for the duration of a service method's invocation.  This is enabled by setting `PipelinePolicy` instances on `ClientPipelineOptions` or `RequestOptions` via the different policy members on those types.  When `ClientPipeline.Create` is called in a ClientModel client constructor, policies specified on the `ClientPipelineOptions` instance passed to `Create` will be built into the client's pipeline.
 
-Implementors of custom policies inherit from `PipelinePolicy` and implement its abstract `Process` and `ProcessAsync` methods.  Both these methods take a `PipelineMessage` and are expected to call `PipelineProcessor.ProcessNext` or `PipelineProcessor.ProcessNextAsync` to pass control to the next policy in the pipeline.  A policy implementation can modify the request (e.g. to add a header) before calling `ProcessNext`, and will have access to the buffered response after control returns from the `ProcessNext` call.  Policies can be inserted into the pipeline before the retry policy by adding them to `PipelineOptions.PerCallPolicies` or after the retry policy by adding them to `PipelineOptions.PerTryPolicies`.
+Implementors of custom policies inherit from `PipelinePolicy` and implement its abstract `Process` and `ProcessAsync` methods.  Both these methods take a `PipelineMessage` and are expected to call `PipelinePolicy.ProcessNext` or `PipelinePolicy.ProcessNextAsync` to pass control to the next policy in the pipeline.  A policy implementation can modify the request (e.g. to add a header) before calling `ProcessNext`, and will have access to the buffered response after control returns from the `ProcessNext` call.  Policies can be inserted into the pipeline before the retry policy by adding them to `PipelineOptions.PerCallPolicies` or after the retry policy by adding them to `PipelineOptions.PerTryPolicies`.
