@@ -19,9 +19,9 @@ ClientModel clients provide a type that inherits from `ClientPipelineOptions` to
   
 ClientModel clients take a `RequestOptions` parameter on protocol methods.  This is used specify options for the duration of a single service method invocation.  This includes:
 
-- Adding headers to a request via `options.RequestHeaders`
+- Adding headers to a request via `options.AddHeader` or `options.SetHeader`.
 - Providing method-scope cancellation token via `options.CancellationToken`
-- Setting non-default behavior when the service returns an error response via `options.ErrorBehavior`
+- Setting non-default behavior when the service returns an error response via `options.ErrorOptions`
 - Per-invocation pipeline customizations
   - Custom per-call and per-retry policies via the `AddPolicy` method
 
@@ -67,11 +67,11 @@ Precedence rules are: [client-user](https://github.com/annelo-msft/gists/blob/ma
 | Client-scope ServiceVersion     | `ClientPipelineOptions` ctor | `ClientPipelineOptions` internal member                    |  n/a   |
 | Client-scope network timeout | `ClientPipelineOptions.NetworkTimeout`  |  `ResponseBufferingPolicy` ctor   |  internal `ResponseBufferingPolicy.DefaultNetworkTimeout`  |
 | Client-scope error response classification | n/a | n/a | internal `PipelineMessageClassifier.Default` |
-| Method-scope request headers | `RequestOptions.RequestHeaders` | `PipelineRequest.Headers` |  n/a   |
+| Method-scope request headers | `RequestOptions.AddHeader` or `RequestOptions.SetHeader` | `PipelineRequest.Headers` |  n/a  |
 | Method-scope CancellationToken | `RequestOptions.CancellationToken` | n/a |  n/a   |
-| Method-scope error response behavior | `RequestOptions.ErrorBehavior` | service method implementation |  `ClientErrorBehaviors.Default` |
+| Method-scope error response behavior | `RequestOptions.ErrorOptions` | service method implementation | `ClientErrorBehaviors.Default` |
 | Method-scope pipeline policy | `RequestOptions.AddPolicy` | n/a |  n/a |
-| Method-scope error response classification | n/a | `PipelineMessage.Apply(options, classifier)` |  n/a |
+| Method-scope error response classification | n/a | `PipelineMessage.Apply(options)` |  n/a |
 
 ## Usage Samples
 
@@ -258,7 +258,7 @@ try
     IPAddress ipAddress = IPAddress.Parse("2001:4898:80e8:b::189");
 
     RequestOptions options = new RequestOptions();
-    options.ErrorBehavior = ErrorBehavior.NoThrow;
+    options.ErrorOptions = ErrorBehavior.NoThrow;
 
     // Call protocol method in order to pass RequestOptions
     ClientResult output = client.GetCountryCode(ipAddress.ToString(), options);
