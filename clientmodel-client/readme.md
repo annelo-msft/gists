@@ -59,7 +59,7 @@ A number of types have been removed from System.ClientModel.  As a result client
 - `RequestUriBuilder` is replaced by BCL `Uri` type.  `CreateRequest` methods use BCL `UriBuilder` to create the request URI.
 - Shared source type `RawRequestUriBuilder` is removed.  Generated clients escape URI query parameter values inline. [Example](https://github.com/Azure/azure-sdk-for-net/blob/feature/core-experiment/sdk/core/System.ClientModel/tests/client/MapsClient/MapsClient.cs#L112-L126).
 - Shared source type `HttpPipelineExtensions` is removed.  Generated clients call `pipeline.Send` and check `response.IsError` inline in the protocol method. [Example](https://github.com/Azure/azure-sdk-for-net/blob/feature/core-experiment/sdk/core/System.ClientModel/tests/client/MapsClient/MapsClient.cs#L92-L101).
-- Shared source type `Argument` is internal to ClientModel code.  Generated clients inline argument checks.  [Example](https://github.com/Azure/azure-sdk-for-net/blob/feature/core-experiment/sdk/core/System.ClientModel/tests/client/MapsClient/MapsClient.cs#L66).
+- Shared source type `Argument` is internal to ClientModel code.  Generated clients inline argument checks.  [Example](https://github.com/Azure/azure-sdk-for-net/blob/feature/core-experiment/sdk/core/System.ClientModel/tests/client/MapsClient/MapsClient.cs#L74).
 - There are no pageable or long-running operations in `System.ClientModel`-based clients today.
 
 ## Client APIs
