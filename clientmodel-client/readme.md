@@ -14,6 +14,30 @@ Differences fall into the following major categories:
 
 Mapping of Azure.Core type names to System.ClientModel type names:
 
+| Azure.Core type | System.ClientModel type |
+| ------------- | ------------- |
+| `AzureKeyCredential` | `ApiKeyCredential` |
+| `AzureKeyCredentialPolicy` | `ApiKeyAuthenticationPolicy` |
+| `ClientOptions` | `ClientPipelineOptions` |
+| `ErrorOptions` | `ClientErrorBehaviors` |
+| `HttpClientTransport` | `HttpClientPipelineTransport` |
+| `HttpMessage` | `PipelineMessage` |
+| `HttpPipeline` | `ClientPipeline` |
+| `HttpPipelinePolicy` | `PipelinePolicy` |
+| `HttpPipelinePosition` | `PipelinePosition` |
+| `HttpPipelineTransport` | `PipelineTransport` |
+| `NullableResponse<T>` | `ClientResult<T?>` |
+| `Request` | `PipelineRequest` |
+| `RequestContent` | `BinaryContent` |
+| `RequestContext` | `RequestOptions` |
+| `RequestHeaders` | `PipelineRequestHeaders` |
+| `RequestFailedException` | `ClientResultException` |
+| `Response` | `PipelineResponse` |
+| `Response<T>` | `ClientResult<T>` |
+| `ResponseClassifier` | `PipelineMessageClassifier` |
+| `ResponseHeaders` | `PipelineResponseHeaders` |
+| `RetryPolicy` | `ClientRetryPolicy` |
+
 ## Type usage
 
 Usage of ClientModel types differ from Azure.Core types in the following areas
