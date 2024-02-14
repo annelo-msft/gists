@@ -2,7 +2,7 @@
 
 ## Overview
 
-Differences fall into the following major categories:
+Differences fall into the following categories:
 
 - [Type name changes](#type-names)
 - [Type usage changes](#type-usage)
@@ -44,6 +44,7 @@ Differences fall into the following major categories:
 Usage of ClientModel types differ from Azure.Core types in the following areas:
 
 - Call to `HttpPipelineBuilder.Build` is replaced by `ClientPipeline.Create`.
+- Client endpoint is a local variable and not a property on client options.
 - `ClientPipeline.Send` does not take a cancellation token.
 - Generated `PipelineMessageClassifier` instances are created using `PipelineMessageClassifier.Create` instead of classifier constructor.
 - `PipelineMessage.Apply(options)` is called at the end of a `CreateRequest` method instead of at the beginning.
@@ -54,8 +55,11 @@ Usage of ClientModel types differ from Azure.Core types in the following areas:
 
 A number of types have been removed from System.ClientModel.  As a result client method implementations will change as follows.
 
+- `ClientDiagnostics` is removed.  As a result, calls `CreateScope`, `scope.Start` and try/catch block around method implementation are removed.
 - `RequestUriBuilder` is replaced by BCL `Uri` type.  `CreateRequest` methods use BCL `UriBuilder` to create the request URI.
-- Shared source type `RawRequestUriBuilder` has been removed.  Generated clients escape URI query parameter values inline.
+- Shared source type `RawRequestUriBuilder` is removed.  Generated clients escape URI query parameter values inline.
+- Shared source type `HttpPipelineExtensions` is removed.  Generated clients call `pipeline.Send` and check `response.IsError` inline in the protocol method.
+- There are no pageable or long-running operations in `System.ClientModel`-based clients today.
 
 ## Client APIs
 
