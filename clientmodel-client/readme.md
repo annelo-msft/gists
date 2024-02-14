@@ -12,8 +12,6 @@ Differences fall into the following major categories:
 
 ## Type names
 
-Mapping of Azure.Core type names to System.ClientModel type names:
-
 | Azure.Core type | System.ClientModel type |
 | ------------- | ------------- |
 | `AzureKeyCredential` | `ApiKeyCredential` |
@@ -38,20 +36,33 @@ Mapping of Azure.Core type names to System.ClientModel type names:
 | `ResponseHeaders` | `PipelineResponseHeaders` |
 | `RetryPolicy` | `ClientRetryPolicy` |
 
+[Azure.Core APIView](https://apiview.dev/Assemblies/Review/ba87b735158144eea6cabe21a2c58dde)
+[System.ClientModel APIView](https://apiview.dev/Assemblies/Review/1b123e7a51d44ebe945f0212ee039c65)
+
 ## Type usage
 
-Usage of ClientModel types differ from Azure.Core types in the following areas
+Usage of ClientModel types differ from Azure.Core types in the following areas:
+
+- Call to `HttpPipelineBuilder.Build` is replaced by `ClientPipeline.Create`.
+- `ClientPipeline.Send` does not take a cancellation token.
+- Generated `PipelineMessageClassifier` instances are created using `PipelineMessageClassifier.Create` instead of classifier constructor.
+- `PipelineMessage.Apply(options)` is called at the end of a `CreateRequest` method instead of at the beginning.
+- `PipelineRequest.Method` is set from a string value instead of an extensible enum value.
+- Instances of `ClientResultException` created in async contexts use `ClientResultException.CreateAsync` instead of exception constructor.
 
 ## Type removal
 
-A number of shared source types no longer exist in System.ClientModel.  As a result client method implementations will change as follows.
+A number of types have been removed from System.ClientModel.  As a result client method implementations will change as follows.
+
+- `RequestUriBuilder` is replaced by BCL `Uri` type.  `CreateRequest` methods use BCL `UriBuilder` to create the request URI.
+- Shared source type `RawRequestUriBuilder` has been removed.  Generated clients escape URI query parameter values inline.
 
 ## Client APIs
 
 System.ClientModel-based clients should have the same APIs as Azure.Core-based clients (modulo type name changes) in all areas, except the following.
 
-- Convenience methods do not take `CancellationToken` parameter.
-- Protocol methods return `ClientResult` instead of `PipelineResponse`.
+- Convenience methods do not take `CancellationToken` parameter.  As a result, convenience methods do not create an instance of `RequestOptions` to pass to the nested protocol method call.
+- Protocol methods return `ClientResult` instead of `PipelineResponse`.  As a result, convenience methods first call `result.GetRawResponse` to get the `PipelineResponse` they use to create the method return value.  Similarly, protocol methods call `ClientResult.FromResponse` to create the return value instead of returning the message.Response.
 
 ## Nullable annotations
 
