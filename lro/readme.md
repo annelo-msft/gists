@@ -23,6 +23,8 @@
 
 ## System.ClientModel types
 
+To account for variation in operation implementations across third-party cloud services, System.ClientModel will provide minimal base types that expose only APIs to indicate whether an operation has completed, to enable rehydration, and a `Wait` method that returns when a polling LRO should stop polling, or a streaming LRO update stream ends.  Operation-specific subtypes of the base `OperationResult` type will add APIs to address other requirements, as applicable to the service operation.
+
 [System.ClientModel APIView](https://spa.apiview.dev/review/1b123e7a51d44ebe945f0212ee039c65?activeApiRevisionId=52c33ec0ef944f2984f69c9fa0f5af5c&diffApiRevisionId=3063cc5747204d499f9e8c212b84c0b3&diffStyle=trees)
 
 ## Third-party generated client types
@@ -34,8 +36,9 @@ Client libraries add public types derived from SCM `OperationResult`.  These add
 - Implementations of `Wait`, that return when operation is completed or suspended, as applicable to the service operation
 - Protocol methods for "linked operations," including methods to resume, cancel the operation
 - Convenience methods for "linked operations," including methods to resume, cancel the operation
+- Static `Rehydrate` method taking a client or pipeline instance and a rehydration token
 
-Clients return these types from both protocol methods and convenience methods that start the operation on the service.  In addition, for convenience methods, clients add methods that accept a rehydration token and return an operation that has already been started, e.g. by a different process.
+Clients return these types from both protocol methods and convenience methods that start the operation on the service.
 
 In OpenAI, an example is:
 
