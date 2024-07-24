@@ -44,7 +44,7 @@ public class RunOperation : OperationResult
 {
     internal RunOperation()
     {
-        // Store reference to pipeline
+        // Store reference to pipeline, etc
     }
 
     public ThreadRun? Value { get; protected set; }
@@ -88,11 +88,13 @@ public class RunOperation : OperationResult
     // Generated convenience methods, including
     public virtual ClientResult<ThreadRun> CancelRun(CancellationToken cancellationToken = default)
     {
+        // ...
     }
 
     // Generated protocol methods, including
     public virtual ClientResult CancelRun(string threadId, string runId, RequestOptions? options)
     {
+        // ...
     }
 }
 ```
@@ -102,9 +104,13 @@ OpenAI also has the option to stream updates indicating the progress of an opera
 ```csharp
 public class StreamingRunOperation : RunOperation
 {
+    // Using IEnumerator instead of IAsyncEnumerator for illustration purposes
+    private IEnumerator<StreamingUpdate> _enumerator;
+
     public virtual IEnumerable<ThreadRun> GetUpdatesStreaming(CancellationToken cancellationToken = default)
     {
         // Implemented via SseParser implementation
+        _enumerator = new StreamingUpdateEnumerator();
 
         try
         {
@@ -147,11 +153,12 @@ public class StreamingRunOperation : RunOperation
         }
     }
 
-    // Streaming convenience methods
+    // Streaming convenience methods, including
+
     public virtual void SubmitToolOutputsToRunStreaming(IEnumerable<ToolOutput> toolOutputs, CancellationToken cancellationToken = default)
     {
         // Sends request
-        // Updates the enumerator used by GetUpdatesStreaming to parse events from the new response stream
+        // Updates _enumerator used by GetUpdatesStreaming to parse events from the new response stream
     }
 }
 ```
