@@ -1,6 +1,10 @@
 # System.ClientModel Long-Running Operations
 
+Cloud services use long-running operations to implement asynchronous HTTP operations.  A client sends a request to the service to start an operation and then gets updates from the service until the operation completes and any computed outcome can be obtained.
+
 ## Requirements
+
+The `Operation` and `Operation<T>` types in Azure.Core provide general-purpose subclient types returned from client service methods.  Third-party services have greater variation in how they are implemented than Azure services, which adds requirements that System.ClientModel types and third-party generated libraries must satisfy.
 
 ### Azure requirements
 
@@ -21,10 +25,9 @@
 - Expose linked operations (e.g. Cancel) on operation type
 - Protocol method return type enables adding convenience method overload without breaking changes
 
-
 ## System.ClientModel types
 
-To account for variation in operation implementations across third-party cloud services, System.ClientModel will provide minimal base types that expose only APIs to indicate whether an operation has completed, to enable rehydration, and a `Wait` method that returns when a polling LRO should stop polling, or an LRO update stream ends.  Client libraries will add public operation-specific types derived from `OperationResult` to add APIs to address other requirements.
+To account for variation in operation implementations across third-party cloud services, System.ClientModel provides minimal base types that expose only APIs to indicate whether an operation has completed, to enable rehydration, and a `Wait` method that returns when a polling LRO should stop polling, or an LRO update stream ends.  Client libraries will add public operation-specific types derived from `OperationResult` to add APIs to address other requirements.
 
 ### SCM OperationResult API
 
@@ -45,25 +48,6 @@ namespace System.ClientModel.Primitives
 
 [System.ClientModel APIView](https://spa.apiview.dev/review/1b123e7a51d44ebe945f0212ee039c65?activeApiRevisionId=52c33ec0ef944f2984f69c9fa0f5af5c&diffApiRevisionId=3063cc5747204d499f9e8c212b84c0b3&diffStyle=trees)
 
-### Comparison of how Azure.Core and SCM clients address requirements
-
-| Requirement  | Azure.Core | System.ClientModel |
-| ------------- | ------------- | --- |
-| Start operation  | Service method on client | Service method on client |
-| Automatically poll for updates | `Operation.WaitForCompletion` | `OperationResult.Wait` |
-| Manually poll for updates | `Operation.UpdateStatus` | Generated type `GetUpdates` |
-| Set polling interval | `Operation.WaitForCompletion` parameter | Generated type `Wait` overload parameter |
-| Get current status of operation | Parse JSON from `Operation.UpdateStatus(...).GetRawResponse()` | Generated type `Status` property |
-| Get outcome of completed operation | `Operation<T>.Value` | Generated type `Value` |
-| Communicate to user when operation is completed | `Operation.WaitForCompletion` | `OperationResult.Wait` |
-| Rehydrate an operation from a separate process | `Operation.Rehydrate` static method | Generated type `Rehydrate` static method |
-| Get HTTP details from service responses | `Operation.GetRawResponse` | `OperationResult.GetRawResponse` |
-| Stream updates | not supported | Generated type `GetUpdates` or `GetUpdatesStreaming` |
-| Communicate to user when operation state is changed | not supported | Generated type `GetUpdates` |
-| Communicate to user when operation is suspended and requires action to continue | not supported | `OperationResult.Wait` |
-| Expose linked operations on operation type | not supported | Methods generated on LRO subclient |
-| Add convenience methods without breaking changes | not supported | Protocol and convenience methods return same type |
-
 ## Third-party generated client types
 
 Client libraries add public types derived from SCM `OperationResult`.  These add the following APIs over what `OperationResult` provides on the base type:
@@ -76,6 +60,27 @@ Client libraries add public types derived from SCM `OperationResult`.  These add
 - Static `Rehydrate` method taking a client or pipeline instance and a rehydration token
 
 Clients return these types from both protocol methods and convenience methods that start the operation on the service.
+
+## Comparison of how Azure.Core and SCM clients address requirements
+
+| Requirement  | Azure.Core | System.ClientModel |
+| ------------- | ------------- | --- |
+| Start operation  | Service method on client | Service method on client |
+| Automatically poll for updates | `Operation.WaitForCompletion` | `OperationResult.Wait` |
+| Manually poll for updates | `Operation.UpdateStatus` | Generated type `GetUpdates` |
+| Set polling interval | `Operation.WaitForCompletion` parameter | Generated type `Wait` overload parameter |
+| Get current status of operation | Parse JSON from `Operation.UpdateStatus(...).GetRawResponse()` | Generated type `Status` property |
+| Get outcome of completed operation | `Operation<T>.Value` | Generated type `Value` property |
+| Communicate to user when operation is completed | `Operation.WaitForCompletion` | `OperationResult.Wait` |
+| Rehydrate an operation from a separate process | `Operation.Rehydrate` static method | Generated type `Rehydrate` static method |
+| Get HTTP details from service responses | `Operation.GetRawResponse` | `OperationResult.GetRawResponse` |
+| Stream updates | not supported | Generated type `GetUpdates` or `GetUpdatesStreaming` |
+| Communicate to user when operation state is changed | not supported | Generated type `GetUpdates` |
+| Communicate to user when operation is suspended and requires action to continue | not supported | `OperationResult.Wait` |
+| Expose linked operations on operation type | not supported | Methods generated on LRO subclient |
+| Add convenience methods without breaking changes | not supported | Protocol and convenience methods return same type |
+
+## Example SCM-based client types
 
 ### Polling operation subclients
 
