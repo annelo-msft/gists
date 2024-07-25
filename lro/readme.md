@@ -4,7 +4,7 @@ Cloud services use long-running operations to implement asynchronous HTTP operat
 
 ## Requirements
 
-The `Operation` and `Operation<T>` types in Azure.Core provide general-purpose subclient types returned from client service methods.  Third-party services have greater variation in how they are implemented than Azure services, which adds requirements that System.ClientModel types and third-party generated libraries must satisfy.
+The `Operation` and `Operation<T>` types in Azure.Core provide general-purpose subclient types returned from client service methods.  Third-party services have greater variation in how long-running operations are implemented than Azure services, which adds requirements that System.ClientModel types and third-party generated libraries must satisfy.
 
 ### Azure requirements
 
@@ -14,20 +14,20 @@ The `Operation` and `Operation<T>` types in Azure.Core provide general-purpose s
 - Get current status of operation
 - Get outcome of completed operation
 - Communicate to user when operation is completed
-- Rehydrate an operation from a separate process
+- Rehydrate an operation subclient, e.g. from a separate process
 - Get HTTP details from service responses
 
-### New third-party service requirements
+### New third-party requirements
 
 - Get updates regarding operation progress from service response stream
 - Communicate to user when operation state is changed
 - Communicate to user when operation is suspended and requires action to continue
-- Expose linked operations (e.g. Cancel) on operation type
-- Protocol method return type enables adding convenience method overload without breaking changes
+- Expose linked operations (e.g. Cancel) on operation subclient
+- Add convenience method overloads without breaking changes
 
 ## System.ClientModel types
 
-To account for variation in operation implementations across third-party cloud services, System.ClientModel provides minimal base types that expose only APIs to indicate whether an operation has completed, to enable rehydration, and a `Wait` method that returns when a polling LRO should stop polling, or an LRO update stream ends.  Client libraries will add public operation-specific types derived from `OperationResult` to add APIs to address additional requirements specific to the operation.
+To account for variation in operation implementations across third-party cloud services, System.ClientModel provides minimal base types that expose only APIs to indicate whether an operation has completed, to enable rehydration, and a `Wait` method that returns when an LRO subclient should stop polling or a response stream ends.  Client libraries add public operation-specific types derived from `OperationResult` that add APIs to address additional requirements specific to the operation.
 
 ### SCM OperationResult API
 
@@ -71,7 +71,7 @@ Clients return these types from both protocol methods and convenience methods th
 | Set polling interval | `Operation.WaitForCompletion` parameter | Generated type `Wait` overload parameter |
 | Get current status of operation | Parse JSON from `Operation.UpdateStatus(...).GetRawResponse()` | Generated type `Status` property |
 | Get outcome of completed operation | `Operation<T>.Value` | Generated type `Value` property |
-| Communicate to user when operation is completed | `Operation.WaitForCompletion` | `OperationResult.Wait` |
+| Communicate to user when operation is completed | `Operation.WaitForCompletion` <br> `Operation.HasCompleted` | `OperationResult.Wait` <br> `OperationResult.IsCompleted` |
 | Rehydrate an operation from a separate process | `Operation.Rehydrate` static method | Generated type `Rehydrate` static method |
 | Get HTTP details from service responses | `Operation.GetRawResponse` | `OperationResult.GetRawResponse` |
 | Stream updates | not supported | Generated type `GetUpdates` or `GetUpdatesStreaming` |
@@ -84,7 +84,7 @@ Clients return these types from both protocol methods and convenience methods th
 
 ### Polling operation subclients
 
-In OpenAI, an example is the `RunOperation` type, returned from both protocol and convenience `AssistantClient.CreateRun` methods.
+In OpenAI, an example of a generated polling LRO type derived from SCM `OperationResult` is `RunOperation`.  Following the third-party client pattern, it is returned from both protocol and convenience `AssistantClient.CreateRun` methods.
 
 ```csharp
 public class RunOperation : OperationResult
@@ -148,7 +148,7 @@ public class RunOperation : OperationResult
 
 ### Streaming operation subclients
 
-OpenAI also has the option to stream updates indicating the progress of an operation running on the service.  We need a way to support this at the protocol layer, as well as a way to provide access to "linked operations" such as resume and cancel at the convenience layer.  We can address this by having the client add a subtype of the polling `RunOperation` that implements the get updates requirement via streaming, overrides polling implementations on its base type, and adds streaming convenience APIs.
+In addition to polling for updates, OpenAI supports streaming operation status updates.  This means that SCM-based clients must support streaming at the protocol layer and also provide access to "linked operations" such as resume and cancel from streaming APIs at the convenience layer.  We address this by adding a subtype of the polling `RunOperation` that gets updates from the response stream, overrides polling methods on its base type, and adds streaming convenience APIs.
 
 ```csharp
 public class StreamingRunOperation : RunOperation
@@ -215,7 +215,7 @@ public class StreamingRunOperation : RunOperation
 
 ## Usage samples
 
-For OpenAI's most complex scenario, submitting tool output when an assistant thread run operation is suspended in "requires_action" state, this can be implemented via either `Wait` or `GetUpdates` for both the polling and streaming cases, as follows.  The samples look largely the same for both polling and streaming versions.
+OpenAI's most complex scenario, submitting tool output when an assistant thread run operation is suspended in "requires_action" state, can be implemented via either `Wait` or `GetUpdates` for both the polling and streaming cases, as follows.  Usage of cilent APIs looks largely the same for both polling and streaming versions.  Samples using the `Wait` approach for polling and the `GetUpdates` approach for streaming are shown below.
 
 ### Wait, polling
 
