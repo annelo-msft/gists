@@ -1,6 +1,6 @@
 # System.ClientModel Long-Running Operations
 
-Cloud services use long-running operations to implement asynchronous HTTP operations.  A client sends a request to the service to start an operation and then gets updates from the service until the operation completes and any computed outcome can be obtained.
+Cloud services use long-running operations to implement asynchronous HTTP operations.  A client sends a request to the service to start an operation, gets updates from the service until the operation completes, and then retrieves any value computed by the operation.
 
 ## Requirements
 
@@ -27,7 +27,7 @@ The `Operation` and `Operation<T>` types in Azure.Core provide general-purpose s
 
 ## System.ClientModel types
 
-To account for variation in operation implementations across third-party cloud services, System.ClientModel provides minimal base types that expose only APIs to indicate whether an operation has completed, to enable rehydration, and a `Wait` method that returns when a polling LRO should stop polling, or an LRO update stream ends.  Client libraries will add public operation-specific types derived from `OperationResult` to add APIs to address other requirements.
+To account for variation in operation implementations across third-party cloud services, System.ClientModel provides minimal base types that expose only APIs to indicate whether an operation has completed, to enable rehydration, and a `Wait` method that returns when a polling LRO should stop polling, or an LRO update stream ends.  Client libraries will add public operation-specific types derived from `OperationResult` to add APIs to address additional requirements specific to the operation.
 
 ### SCM OperationResult API
 
