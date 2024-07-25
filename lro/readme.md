@@ -10,22 +10,59 @@
 - Get current status of operation
 - Get outcome of completed operation
 - Communicate to user when operation is completed
-- Communicate to user when operation state is changed
 - Rehydrate an operation from a separate process
 - Get HTTP details from service responses
 
 ### New third-party service requirements
 
+- Get updates regarding operation progress from service response stream
+- Communicate to user when operation state is changed
 - Communicate to user when operation is suspended and requires action to continue
-- Get updates regarding operation progress via service response stream
 - Expose linked operations (e.g. Cancel) on operation type
 - Protocol method return type enables adding convenience method overload without breaking changes
 
+
 ## System.ClientModel types
 
-To account for variation in operation implementations across third-party cloud services, System.ClientModel will provide minimal base types that expose only APIs to indicate whether an operation has completed, to enable rehydration, and a `Wait` method that returns when a polling LRO should stop polling, or a streaming LRO update stream ends.  Operation-specific subtypes of the base `OperationResult` type will add APIs to address other requirements, as applicable to the service operation.
+To account for variation in operation implementations across third-party cloud services, System.ClientModel will provide minimal base types that expose only APIs to indicate whether an operation has completed, to enable rehydration, and a `Wait` method that returns when a polling LRO should stop polling, or an LRO update stream ends.  Client libraries will add public operation-specific types derived from `OperationResult` to add APIs to address other requirements.
+
+### SCM OperationResult API
+
+```csharp
+namespace System.ClientModel.Primitives
+{
+    public abstract partial class OperationResult : System.ClientModel.ClientResult
+    {
+        protected OperationResult() { }
+        protected OperationResult(System.ClientModel.Primitives.PipelineResponse response) { }
+        public abstract bool IsCompleted { get; protected set; }
+        public abstract System.ClientModel.ContinuationToken? RehydrationToken { get; protected set; }
+        public abstract void Wait(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+        public abstract System.Threading.Tasks.Task WaitAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken));
+    }
+}
+```
 
 [System.ClientModel APIView](https://spa.apiview.dev/review/1b123e7a51d44ebe945f0212ee039c65?activeApiRevisionId=52c33ec0ef944f2984f69c9fa0f5af5c&diffApiRevisionId=3063cc5747204d499f9e8c212b84c0b3&diffStyle=trees)
+
+### Comparison of how Azure.Core and SCM clients address requirements
+
+| Requirement  | Azure.Core | System.ClientModel |
+| ------------- | ------------- | --- |
+| Start operation  | Service method on client | Service method on client |
+| Automatically poll for updates | `Operation.WaitForCompletion` | `OperationResult.Wait` |
+| Manually poll for updates | `Operation.UpdateStatus` | Generated type `GetUpdates` |
+| Set polling interval | `Operation.WaitForCompletion` parameter | Generated type `Wait` overload parameter |
+| Get current status of operation | Parse JSON from `Operation.UpdateStatus(...).GetRawResponse()` | Generated type `Status` property |
+| Get outcome of completed operation | `Operation<T>.Value` | Generated type `Value` |
+| Communicate to user when operation is completed | `Operation.WaitForCompletion` | `OperationResult.Wait` |
+| Rehydrate an operation from a separate process | `Operation.Rehydrate` static method | Generated type `Rehydrate` static method |
+| Get HTTP details from service responses | `Operation.GetRawResponse` | `OperationResult.GetRawResponse` |
+| Stream updates | not supported | Generated type `GetUpdates` or `GetUpdatesStreaming` |
+| Communicate to user when operation state is changed | not supported | Generated type `GetUpdates` |
+| Communicate to user when operation is suspended and requires action to continue | not supported | `OperationResult.Wait` |
+| Expose linked operations on operation type | not supported | Methods generated on LRO subclient |
+| Add convenience methods without breaking changes | not supported | Protocol and convenience methods return same type |
 
 ## Third-party generated client types
 
@@ -40,7 +77,9 @@ Client libraries add public types derived from SCM `OperationResult`.  These add
 
 Clients return these types from both protocol methods and convenience methods that start the operation on the service.
 
-In OpenAI, an example is:
+### Polling operation subclients
+
+In OpenAI, an example is the `RunOperation` type, returned from both protocol and convenience `AssistantClient.CreateRun` methods.
 
 ```csharp
 public class RunOperation : OperationResult
@@ -102,7 +141,9 @@ public class RunOperation : OperationResult
 }
 ```
 
-OpenAI also has the option to stream updates indicating the progress of an operation running on the service.  We need a way to support this at the protocol layer, as well as a way to provide access to "linked operations" such as resume and cancel at the convenience layer.  We can address this by having the client add a subtype of the polling `RunOperation` that implements the get updates requirement via streaming,  overrides polling implementations on its base type, and adds streaming convenience APIs.
+### Streaming operation subclients
+
+OpenAI also has the option to stream updates indicating the progress of an operation running on the service.  We need a way to support this at the protocol layer, as well as a way to provide access to "linked operations" such as resume and cancel at the convenience layer.  We can address this by having the client add a subtype of the polling `RunOperation` that implements the get updates requirement via streaming, overrides polling implementations on its base type, and adds streaming convenience APIs.
 
 ```csharp
 public class StreamingRunOperation : RunOperation
@@ -157,7 +198,6 @@ public class StreamingRunOperation : RunOperation
     }
 
     // Streaming convenience methods, including
-
     public virtual void SubmitToolOutputsToRunStreaming(IEnumerable<ToolOutput> toolOutputs, CancellationToken cancellationToken = default)
     {
         // Sends request
@@ -170,61 +210,60 @@ public class StreamingRunOperation : RunOperation
 
 ## Usage samples
 
-For OpenAI's most complex scenario, submitting tool output when an assistant thread run operation is suspended in "requires_action" state, this can be implemented via either `Wait` or `GetUpdates` for both the polling and streaming cases, as follows.  
-The samples look largely the same for both polling and streaming versions.
+For OpenAI's most complex scenario, submitting tool output when an assistant thread run operation is suspended in "requires_action" state, this can be implemented via either `Wait` or `GetUpdates` for both the polling and streaming cases, as follows.  The samples look largely the same for both polling and streaming versions.
 
 ### Wait, polling
 
 ```csharp
-    // Create run polling
-    RunOperation runOperation = client.CreateRun(
-        ReturnWhen.Started,
-        thread, assistant,
-        new RunCreationOptions()
-        {
-            AdditionalInstructions = "Call provided tools when appropriate.",
-        });
-    
-    while (!runOperation.IsCompleted)
+// Create run polling
+RunOperation runOperation = client.CreateRun(
+    ReturnWhen.Started,
+    thread, assistant,
+    new RunCreationOptions()
     {
-        runOperation.Wait();
-    
-        if (runOperation.Status == RunStatus.RequiresAction)
-        {
-            IEnumerable<ToolOutput> outputs = new List<ToolOutput> {
-                new ToolOutput(runOperation.Value.RequiredActions[0].ToolCallId, "tacos")
-            };
-    
-            runOperation.SubmitToolOutputsToRun(outputs);
-        }
+        AdditionalInstructions = "Call provided tools when appropriate.",
+    });
+
+while (!runOperation.IsCompleted)
+{
+    runOperation.Wait();
+
+    if (runOperation.Status == RunStatus.RequiresAction)
+    {
+        IEnumerable<ToolOutput> outputs = new List<ToolOutput> {
+            new ToolOutput(runOperation.Value.RequiredActions[0].ToolCallId, "tacos")
+        };
+
+        runOperation.SubmitToolOutputsToRun(outputs);
     }
+}
 ```
 
 ### GetUpdates, streaming
 
 ```csharp
-    // Create run streaming
-    StreamingRunOperation runOperation = client.CreateRunStreaming(thread, assistant,
-        new RunCreationOptions()
-        {
-            AdditionalInstructions = "Call provided tools when appropriate.",
-        });
-
-
-    IAsyncEnumerable<StreamingUpdate> updates = runOperation.GetUpdatesStreamingAsync();
-
-    await foreach (StreamingUpdate update in updates)
+// Create run streaming
+StreamingRunOperation runOperation = client.CreateRunStreaming(thread, assistant,
+    new RunCreationOptions()
     {
-        if (update is RunUpdate &&
-            runOperation.Status == RunStatus.RequiresAction)
-        {
-            IEnumerable<ToolOutput> outputs = new List<ToolOutput> {
-                new ToolOutput(runOperation.Value.RequiredActions[0].ToolCallId, "tacos")
-            };
+        AdditionalInstructions = "Call provided tools when appropriate.",
+    });
 
-            await runOperation.SubmitToolOutputsToRunStreamingAsync(outputs);
-        }
+
+IAsyncEnumerable<StreamingUpdate> updates = runOperation.GetUpdatesStreamingAsync();
+
+await foreach (StreamingUpdate update in updates)
+{
+    if (update is RunUpdate &&
+        runOperation.Status == RunStatus.RequiresAction)
+    {
+        IEnumerable<ToolOutput> outputs = new List<ToolOutput> {
+            new ToolOutput(runOperation.Value.RequiredActions[0].ToolCallId, "tacos")
+        };
+
+        await runOperation.SubmitToolOutputsToRunStreamingAsync(outputs);
     }
+}
 ```
 
-## Client evolution
+## Subclient evolution
