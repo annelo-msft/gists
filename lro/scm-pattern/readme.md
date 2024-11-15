@@ -92,9 +92,9 @@ The `System.ClientModel`-based client pattern for long-running operations consis
 
 The base abstraction for LROs in `System.ClientModel` is the `OperationResult` type in the `System.ClientModel.Primitives` namespace. This type:
 
-1. Provides public `HasCompleted` property, which the implementation must set to true in its implementation of `UpdateStatus` when the service update indicates the operation has completed.
+1. Provides a public `HasCompleted` property, which the implementation must set to true in its implementation of `UpdateStatus` when the service update indicates the operation has completed.
 2. Provides a `WaitForCompletion` method that can be called synchronously or asynchronously to wait for the operation to complete from users' application code.
-3. Provides a `UpdateStatus` method called from `WaitForCompletion`, but public to enable low-level control of polling for advanced scenarios
+3. Provides an abstract `UpdateStatus` method that is called from the implementation of `WaitForCompletion`.  This method is public to enable low-level control of polling for advanced scenarios.
 4. Provides a `GetRawResponse` method to provide access to HTTP response details for advanced scenarios
 5. Provides a `RehydrationToken` that can be persisted and used to rehydrate the OperationResult derived type as a runtime instance.
 
