@@ -82,7 +82,7 @@ The client makes it possible for the user to persist a unique identifier for the
 2. If the service operation is still in in progress when the user rehydrates the client affordance, the user can wait for completion in the same way they would if they had started the operation themselves.
 3. If the service operation has completed when the user rehydrates the client affordance, they can interact with it in the same way they would it they had started the operation themselves, i.e. if an output value is available the user can obtain this, if a status that indicates why the operation completed, they can view this, etc.
 
-In .NET, clients provide a client-side continuation token object and a static `Rehydrate` method on the LRO subclient.  The client-side continuation token is not identical to a service-side continuation token, but a service-side continuation token may be used in the implementation of the client-side type.  Details of this are described below.
+In .NET, clients provide a client-side `ContinuationToken` object and a static `Rehydrate` method on the LRO subclient.  The client-side continuation token is not identical to a service-side continuation token, but a service-side continuation token may be used in the implementation of the client-side type.  Details of this are described below.
 
 ## SCM-based client pattern
 
