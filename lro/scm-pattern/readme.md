@@ -15,7 +15,7 @@ _A long-running operation (LRO) is typically an operation that should execute sy
     
 ## Client-side experience
 
-The following description is intended to be independent of the programming language a client is implemented in, but since it comes from the .NET pattern, it is possible it contains elements that are too specific to .NET for other language clients to adopt.  The expectation here is that we might try to align on a similar feature set across languages, but implement them in a way that is idiomatic to a given language.
+The following description is intended to be independent of the programming language a client is implemented in, but since it comes from the .NET pattern, it is possible it contains elements that are too specific to .NET for other language clients to adopt.  The expectation here is that we might work to align on a similar feature set across languages, but implement them in a way that is idiomatic to a given language.
 
 ### 1. User starts the LRO
 
