@@ -130,12 +130,14 @@ These methods are named in a way that indicates what the long-running operation 
 
 #### Method inputs
 
-Input paramters to such service methods include:
+Input parameters to such service methods include:
 
 1. Values needed to create the HTTP request to start the operation
 2. An additional boolean parameter `waitUntilCompleted` that indicates whether the method should return the derived type instance after the first request is sent and the service response is received, or whether the service method should internally call `WaitForCompletion` on the derived type instance before returning
 
 #### Method return types
+
+Service methods that start long-running operations return an LRO subclient.
 
 For context, .NET clients expose high- and low-level service methods for a given service endpoint: _convenience methods_ take model types and `CancellationToken` parameters as input, and _protocol methods_ take primitive values corresponding to query and path parameters in the HTTP request, a `BinaryContent` value corresponding to the HTTP request body, and `RequestOptions` parameters.  (See [MS Learn article on convenience and protocol methods](https://learn.microsoft.com/en-us/dotnet/azure/sdk/protocol-convenience-methods?tabs=convenience-methods%2Csystem-clientmodel).)
 
