@@ -37,14 +37,16 @@ In .NET, the clients creates a message and sends it via the client pipeline.  Th
 In response to the client request, the service sends a response containing values that in some way indicate the operation has started.
 
 The service API may fully specify how the client should send requests for updates regarding the status of the operation and whether the operation has completed.  
+
 Alternatively, the service's initial response may contain values that tell the client how to make these subseqent requests.
+
 The service response may optionally indicate to the client that the operation has already completed.
 
 In .NET, the service response is obtained from the message once the client pipeline's send operation has completed.  The client's service method internally creates an _LRO subclient_ as described below an returns this to the user.
 
 ### 4. Client polls for status updates
 
-After the initial request, if the client has not determined that the operation has already completed, the client polls for updates regarding the operation status in the manner the service has specified.
+After the initial request to start the operation on the service, if the client has not determined that the operation has already completed, the client polls for updates regarding the operation status in the manner specified by the service.
 
 This can happen in different ways based on values provided by the user:
 
