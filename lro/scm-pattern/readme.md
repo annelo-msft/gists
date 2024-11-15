@@ -119,7 +119,7 @@ Many details of the SCM-based LRO subclient are consistent with those described 
 
 ### Client service methods
 
-Clients expose service methods that users call to start the operation on the service.
+SCM-based clients expose service methods that users call to start the operation on the service.
 
 #### Naming convention
 
