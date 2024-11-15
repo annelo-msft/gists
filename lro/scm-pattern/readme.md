@@ -1,5 +1,9 @@
 # System.ClientModel-based client pattern for LROs
 
+`System.ClientModel` is the .NET Core library that allows clients that talk to cloud services to be created without the Azure brand.  We sometimes call this "unbranded," but more commonly it is used to support clients with a non-Azure brand, such as the .NET `OpenAI` client library (where the brand is OpenAI).
+
+This document describes the client pattern for long-running operations in SCM-based clients.
+
 ## LRO definition
 
 The following definition comes from [Azure API Guidelines | Long-Running Operations & Jobs](https://github.com/microsoft/api-guidelines/blob/vNext/azure/Guidelines.md#long-running-operations--jobs):
