@@ -96,7 +96,7 @@ The base abstraction for LROs in `System.ClientModel` is the `OperationResult` t
 2. Provides a `WaitForCompletion` method that can be called synchronously or asynchronously to wait for the operation to complete from users' application code.
 3. Provides an abstract `UpdateStatus` method that is called from the implementation of `WaitForCompletion`.  This method is public to enable low-level control of polling for advanced scenarios.
 4. Provides a `GetRawResponse` method to provide access to HTTP response details for advanced scenarios
-5. Provides a `RehydrationToken` that can be persisted and used to rehydrate the OperationResult derived type as a runtime instance.
+5. Provides a `RehydrationToken` that can be persisted and used to rehydrate the `OperationResult` derived type as a runtime instance.
 
  See [OperationResult](https://learn.microsoft.com/en-us/dotnet/api/system.clientmodel.primitives.operationresult?view=azure-dotnet) for details.
 
@@ -107,15 +107,15 @@ The LRO subclient is a public type derived from `OperationResult` and returned f
 1. Add a `Value` property if applicable
 2. Add a `Status` property if applicable
 3. Add other applicable public properties as needed
-4. Add a static `Rehydrate` method taking the relevant client, a client-side `ContinuationToken`, and `CancellationToken` parameters. Convenience overloads can be added for this has needed per user scenarios.
+4. Add a static `Rehydrate` method taking the relevant client, a client-side `ContinuationToken`, and `CancellationToken` parameters. Convenience overloads can be added for this as needed per user scenarios.
 5. Override the abstract `UpdateStatus` methods to:
-    1. Obtain status of the operation on the service, as specified by the service API and possibly values obtained from the first service response
+    1. Obtain the status of the operation on the service, as specified by the service API and possibly values obtained from the first service response
     2. Update public properties on the LRO subclient from the service response
     3. Make the details of the HTTP response available by calling `SetRawResponse`
-6. May optionally override `WaitForCompletion` if needed for a specific service implementation
-7. Add any service methods that operate on the service-side LRO itself, e.g. a `Cancel` operation.  If the service exposes a "Get Status"-like operation, this method is not exposed as a public service method on the LRO subclient.  This is because it is functionally equivalent to the `UpdateStatus` method on the base `OperationResult` type.
+6. May optionally override the virtual `WaitForCompletion` method if needed for a specific service implementation
+7. Add any service methods that operate on the service-side LRO itself, e.g. a `Cancel` operation if the service provides it.  If the service exposes a "Get Status"-like operation, this method is not exposed as a public service method on the LRO subclient.  This is because it is functionally equivalent to the `UpdateStatus` method on the base `OperationResult` type.
 
-Some details of the SCM-based LRO subclient are consistent with those described for Azure clients in the [.NET Azure SDK Guideines on Subclients](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-subclients).
+Many details of the SCM-based LRO subclient are consistent with those described for Azure clients in the [.NET Azure SDK Guidelines on Subclients](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-subclients).
 
 ### Client service methods
 
@@ -144,3 +144,5 @@ For context, .NET clients expose high- and low-level service methods for a given
 3. Protocol-only LRO subclients:
     1. Do not expose strongly-typed `Value` or `Status` properties -- similar to how protocol methods are used, end users can obtain these values by parsing the HTTP details obtained from calling `GetRawResponse`
     2. Can defer addition of `ContinuationToken` and `Rehydration` methods until the convenience layer is added, but this is not recommended.
+
+Many details of SCM-based client service methods are consistent with those described fro Azure clients in the [.NET Azure SDK Guidelines on Methods Invoking Long-Running Operations](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-longrunning).
