@@ -144,7 +144,7 @@ For context, .NET clients expose high- and low-level service methods for a given
 1. Service methods that start LROs return the same type from both convenience and protocol methods.  This is the LRO subclient derived from `OperationResult` that corresponds to the specific long-running service operation.
 2. Since the return type is a subclient itself, it evolves in the same way as other .NET clients.  That is, it can be created and shipped quickly in an initial release with protocol methods only.  Convenience methods can be added in later versions, and the investment in the design of the convenience layer can be dialed according to customer need.
 3. Protocol-only LRO subclients:
-    1. Do not expose strongly-typed `Value` or `Status` properties -- similar to how protocol methods are used, end users can obtain these values by parsing the HTTP details obtained from calling `GetRawResponse`
+    1. Do not expose strongly-typed `Value` or `Status` properties -- similar to how protocol methods are used, end users can obtain these values by parsing the HTTP details obtained by calling `GetRawResponse`
     2. Can defer addition of `ContinuationToken` and `Rehydration` methods until the convenience layer is added, but this is not recommended.
 
 Many details of SCM-based client service methods are consistent with those described fro Azure clients in the [.NET Azure SDK Guidelines on Methods Invoking Long-Running Operations](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-longrunning).
