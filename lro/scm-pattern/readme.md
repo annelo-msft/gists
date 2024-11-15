@@ -51,12 +51,12 @@ After the initial request to start the operation on the service, if the client h
 This can happen in different ways based on values provided by the user:
 
 1. Client can poll for status updates at a default polling interval; user can customize the polling interval/strategy
-2. If the user obtained a type instance exposing APIs beyond those on the client used to initiate the operation, the user can use that type to:
+2. If the user obtained a client affordance exposing APIs beyond those on the client used to start the operation, the user can use that affordance to:
     1. Check whether the operation has completed
     2. Wait for the operation to complete in a manner idiomatic to the language the client is implemented in
     3. Manually poll for status updates via the client affordance
     4. Obtain the HTTP details for each service response
-    5. Persist a value that can be used by the same process or a different process to "rehydrate" the operation
+    5. Obtain a value that can be persisted and later used by the same or a different process to "rehydrate" the operation
 
 In .NET, these different approaches are achieved by either the way the user calls the service method, or how they interact with the subtype of `OperationResult` that the service method returns.  Details of this pattern for `System.ClientModel`-based clients are described below.
 
