@@ -58,31 +58,31 @@ This can happen in different ways based on values provided by the user:
     4. Obtain the HTTP details for each service response
     5. Obtain a value that can be persisted and later used by the same or a different process to "rehydrate" the operation
 
-In .NET, these different approaches are achieved by either the way the user calls the service method, or how they interact with the subtype of `OperationResult` that the service method returns.  Details of this pattern for `System.ClientModel`-based clients are described below.
+In .NET, these different approaches are achieved either by the way the user calls the service method, or how they interact with the subtype of `OperationResult` that the service method returns.  Details of this pattern are described below.
 
 ### 5. Client indicates LRO has completed
 
-Once the client has determined that the operation has completed, it communicates this to the user in the manner the user specified it wished to receive that notification.
+Once the client has determined that the long-running operation has completed, it communicates this to the user in the manner the user specified it wished to receive that notification.
 
 In addition, depending on the type of service operation and the details of its implementation on the service, the client may expose the following additional information for the completed LRO:
 
 1. If the service operation computed a result (an _"output"_), the client makes that available to the user
-    1. If the "output" value is useful at intermediate stages of the operation (as may be the case in some AI scenarios where the user wants to continue the computation until some confidence threshold has been reached, and then terminate the operation in order to save the cost of compute time), the client affordance can make these intermediate values available to the user as well.
+    1. If the "output" value is useful at intermediate stages of the operation (as may be the case in some AI scenarios where the user wants to continue the computation until some confidence threshold has been reached, and then terminate the operation in order to save the cost of compute time), the client affordance can make these intermediate values available to the user.
     2. Otherwise, the "output" is made available when the LRO has successfully completed
-2. If the service exposes information regarding stages of the operation lifecycle while is it running (a _"status"_), the client affordance makes that visible to the user at the increment of the polling interval
-3. If the service exposes operations that target a given LRO instance (i.e. a "Cancel" operation that terminates execution of an in-progress LRO), the client affordance makes those available in such a way that a call to those methods can be successful, i.e. those APIs become available after the operation is started and not before then.
+2. If the service exposes information regarding stages of the operation lifecycle while is it running (a _"status"_), the client affordance makes that visible to the user at the increment of the polling interval.  It may also expose APIs that enable waiting for a given state to be reached, but it should use caution to ensure a design won't block waiting for a transient state to be reached if the transition to that state might be missed by the size of the polling interval.
+3. If the service exposes operations that act on an in-progress operation (i.e. a "cancel" operation that terminates execution of an LRO running on the service), the client affordance makes those available in such a way that a call to those methods can be successful, i.e. those APIs become available after the operation is started and not before then.
 
-In .NET, the client affordance provided for viewing outputs, operation status, and operations related to an in-progress LRO, is an LRO subclient, or a public type derived from `OperationResult`.
+In .NET, the client affordance provided to support these features is the LRO subclient detailed below.
 
 ### 6. LRO rehydration
 
-The client makes it possible for the user to persist and identifier for the operation that can be used to "rehydrate" the client affordance for the service operation.  This enables recreating the client affordance from either the same or a different process.
+The client makes it possible for the user to persist and identifier for the operation that can be used to "rehydrate" the client affordance for the service operation.  This enables recreating the client affordance representing the long-running operation from either the same or a different process.
 
-1. The LRO can be rehydrated while it is in progress or after it has completed, for as long as the service retains information regarding its existence and status.
+1. The LRO can be rehydrated while it is in progress or after it has completed, and for as long as the service retains information regarding its existence and status.
 2. If the service operation is still in in progress when the user rehydrates the client affordance, the user can wait for completion in the same way they would if they had started the operation themselves.
 3. If the service operation has completed when the user rehydrates the client affordance, they can interact with it in the same way they would it they had started the operation themselves, i.e. if an output value is available the user can obtain this, if a status that indicates why the operation completed, they can view this, etc.
 
-In .NET, clients provide a client-side continuation token object (not identical to a service-side continuation token, but a service-side continuation token may be used in the implementation of the client-side type), and a static `Rehydrate` method on the LRO subclient.  Details of this are described below.
+In .NET, clients provide a client-side continuation token object and a static `Rehydrate` method on the LRO subclient.  The client-side continuation token is not identical to a service-side continuation token, but a service-side continuation token may be used in the implementation of the client-side type.  Details of this are described below.
 
 ## SCM-based client pattern
 
