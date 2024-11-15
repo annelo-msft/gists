@@ -1,8 +1,8 @@
 # System.ClientModel-based client pattern for LROs
 
-`System.ClientModel` is the .NET Core library that allows clients that talk to cloud services to be created without the Azure brand.  We sometimes call this "unbranded," but more commonly it is used to support clients with a non-Azure brand, such as the .NET `OpenAI` client library (where the brand is OpenAI).
+`System.ClientModel` is the .NET Core library that allows clients that talk to cloud services to be created without the Azure brand.  We sometimes call these clients "unbranded," but more commonly SCM is used to support clients with non-Azure branding, such as the .NET `OpenAI` client library (where the brand is OpenAI).
 
-This document describes the client pattern for long-running operations in SCM-based clients.
+This document describes the client pattern for long-running operations in SCM-based clients.  It starts with a definition for LRO, then describes the client pattern in a way that is intended to be language-agnostic, and finally provides the details of the .NET client pattern.
 
 ## LRO definition
 
