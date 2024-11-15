@@ -42,7 +42,7 @@ Alternatively, the service's initial response may contain values that tell the c
 
 The service response may optionally indicate to the client that the operation has already completed.
 
-In .NET, the service response is obtained from the message once the client pipeline's send operation has completed.  The client's service method internally creates an _LRO subclient_ as described below an returns this to the user.
+In .NET, the service response is obtained from the message once the client pipeline's send operation has completed.  The client's service method internally creates an _LRO subclient_ as described below and returns this to the user.
 
 ### 4. Client polls for status updates
 
