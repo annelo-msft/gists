@@ -76,7 +76,7 @@ In .NET, the client affordance provided to support these features is the LRO sub
 
 ### 6. LRO rehydration
 
-The client makes it possible for the user to persist a unique identifier for the operation that can be used to "rehydrate" the client affordance for the service operation.  This enables recreating the client affordance representing the long-running operation from either the same or a different process.
+The client makes it possible for the user to persist a unique identifier for the operation that can be used to "rehydrate" the client affordance for the service operation.  This allows users to recreate the client affordance representing the long-running operation from either the same or a different process.
 
 1. The LRO can be rehydrated while it is in progress or after it has completed, and for as long as the service retains information regarding its existence and status.
 2. If the service operation is still in in progress when the user rehydrates the client affordance, the user can wait for completion in the same way they would if they had started the operation themselves.
