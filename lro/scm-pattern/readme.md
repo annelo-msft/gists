@@ -82,36 +82,59 @@ In .NET, clients provide a client-side continuation token object (not identical 
 
 The `System.ClientModel`-based client pattern for long-running operations consists of three elements: the base abstraction type `OperationResult`, the public LRO subclient, and the service methods the client exposes to start the LRO.
 
-    1. Base abstraction type -- OperationResult
-        1. Provides public `HasCompleted` property, which the implementation must set to true in its implementation of `UpdateStatus` when the service update indicates the operation has completed.
-        2. Provides a `WaitForCompletion` method that can be called synchronously or asynchronously to wait for the operation to complete from users' application code.
-        3. Provides a `UpdateStatus` method called from `WaitForCompletion`, but public to enable low-level control of polling for advanced scenarios
-        4. Provides a `GetRawResponse` method to provide access to HTTP response details for advanced scenarios
-        5. Provides a `RehydrationToken` that can be persisted and used to rehydrate the OperationResult derived type as a runtime instance.
-    2. Derived type -- LRO subclient
-        1. Adds `Value` property if applicable
-        2. Adds `Status` property if applicable
-        3. Adds other applicable public properties as needed
-        4. Adds static `Rehydrate` method taking relevant client, client-side continuation token
-            1) Convenience overloads can be added for this has needed per user scenarios
-        5. Overrides abstract `UpdateStatus` methods to
-            1) Obtain status of the operation on the service, as specified by the service API and possibly values obtained from the first service response
-            2) Update public properties on the LRO subclient from the service response
-            3) Make the details of the HTTP response available by calling `SetRawResponse`
-        6. May optionally override `WaitForCompletion` 
-        7. Add any service methods that operate on the service-side LRO itself, e.g. a `Cancel` operation
-            1) If the service exposes a `GetStatus` operation, this method is not exposed as a public service method on the LRO subclient.  This is because it is functionally equivalent to the `UpdateStatus` method on the base `OperationResult` type.
-    3. Client service methods
-        1. Clients expose service methods that users call to start the operation on the service
-        2. These methods are named in a way that indicates what the long-running operation on the service does, in the following pattern:
-                a) Service method name: <MethodName>, e.g. CreateVectorStore
-                b) Derived type name: <MethodNameOperation>, e.g. CreateVectorStoreOperation
-        3. Inputs to these methods include:
-            1) Parameters needed to create the HTTP request to start the operation
-            2) An additional boolean parameter `waitUntilCompleted` that indicates whether the method should return the derived type instance after the first request is sent and the service response is received, or whether the service method should internally call `WaitForCompletion` on the derived type instance before returning
-        4. Method return types are:
-            1) For context, .NET clients expose high- and low-level service methods for a given service endpoint: convenience methods take model types and `CancellationToken` parameters as input, and protocol methods take primitive values corresponding to query and path parameters in the HTTP request, a `BinaryContent` value corresponding to the HTTP request body, and `RequestOptions` parameters.  
-            2) Service methods that start LROs return the same type from both convenience and protocol methods.  This is the type derived from OperationResult for the specific operation.  
-            3) The reason for this is that the derived type is a subclient itself, and evolves in the same way as other .NET clients do.  It can be shipped quickly in an initial release with only protocol methods.  Convenience methods can be added in later versions, and that investment in design effort can be dialed according to customer needs.
-                a) Protocol-only LRO subclients do not expose strongly-typed `Value` or `Status` properties -- similar to how protocol methods are used, end users can obtain these values by parsing the HTTP details obtained from calling `GetRawResponse`
-                b) Protocol-only LRO subclients can defer addition of `ContinuationToken` and `Rehydration` methods until the convenience layer is added, but this is not recommended. -->
+### Base abstraction
+
+The base abstraction for LROs in `System.ClientModel` is the `OperationResult` type in the `System.ClientModel.Primitives` namespace. This type:
+
+1. Provides public `HasCompleted` property, which the implementation must set to true in its implementation of `UpdateStatus` when the service update indicates the operation has completed.
+2. Provides a `WaitForCompletion` method that can be called synchronously or asynchronously to wait for the operation to complete from users' application code.
+3. Provides a `UpdateStatus` method called from `WaitForCompletion`, but public to enable low-level control of polling for advanced scenarios
+4. Provides a `GetRawResponse` method to provide access to HTTP response details for advanced scenarios
+5. Provides a `RehydrationToken` that can be persisted and used to rehydrate the OperationResult derived type as a runtime instance.
+
+ See [OperationResult](https://learn.microsoft.com/en-us/dotnet/api/system.clientmodel.primitives.operationresult?view=azure-dotnet) for details.
+
+ ### LRO subclient
+
+The LRO subclient is a public type derived from `OperationResult` and returned from service methods that start LROs.  Implementations of this derived type:
+
+1. Add a `Value` property if applicable
+2. Add a `Status` property if applicable
+3. Add other applicable public properties as needed
+4. Add a static `Rehydrate` method taking the relevant client, a client-side `ContinuationToken`, and `CancellationToken` parameters. Convenience overloads can be added for this has needed per user scenarios.
+5. Override the abstract `UpdateStatus` methods to:
+    1. Obtain status of the operation on the service, as specified by the service API and possibly values obtained from the first service response
+    2. Update public properties on the LRO subclient from the service response
+    3. Make the details of the HTTP response available by calling `SetRawResponse`
+6. May optionally override `WaitForCompletion` if needed for a specific service implementation
+7. Add any service methods that operate on the service-side LRO itself, e.g. a `Cancel` operation.  If the service exposes a "Get Status"-like operation, this method is not exposed as a public service method on the LRO subclient.  This is because it is functionally equivalent to the `UpdateStatus` method on the base `OperationResult` type.
+
+Some details of the SCM-based LRO subclient are consistent with those described for Azure clients in the [.NET Azure SDK Guideines on Subclients](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-subclients).
+
+### Client service methods
+
+Clients expose service methods that users call to start the operation on the service.
+
+#### Naming convention
+
+These methods are named in a way that indicates what the long-running operation on the service does, in the following pattern:
+
+1. Service method name: `<MethodName>`, e.g. `CreateVectorStore`
+2. Derived type name: `<MethodNameOperation>`, e.g. `CreateVectorStoreOperation`
+
+#### Method inputs
+
+Input paramters to such service methods include:
+
+1. Values needed to create the HTTP request to start the operation
+2. An additional boolean parameter `waitUntilCompleted` that indicates whether the method should return the derived type instance after the first request is sent and the service response is received, or whether the service method should internally call `WaitForCompletion` on the derived type instance before returning
+
+#### Method return types
+
+For context, .NET clients expose high- and low-level service methods for a given service endpoint: _convenience methods_ take model types and `CancellationToken` parameters as input, and _protocol methods_ take primitive values corresponding to query and path parameters in the HTTP request, a `BinaryContent` value corresponding to the HTTP request body, and `RequestOptions` parameters.  (See [MS Learn article on convenience and protocol methods](https://learn.microsoft.com/en-us/dotnet/azure/sdk/protocol-convenience-methods?tabs=convenience-methods%2Csystem-clientmodel).)
+
+1. Service methods that start LROs return the same type from both convenience and protocol methods.  This is the LRO subclient derived from `OperationResult` that corresponds to the specific long-running service operation.
+2. Since the return type is a subclient itself, it evolves in the same way as other .NET clients.  That is, it can be created and shipped quickly in an initial release with protocol methods only.  Convenience methods can be added in later versions, and the investment in the design of the convenience layer can be dialed according to customer need.
+3. Protocol-only LRO subclients:
+    1. Do not expose strongly-typed `Value` or `Status` properties -- similar to how protocol methods are used, end users can obtain these values by parsing the HTTP details obtained from calling `GetRawResponse`
+    2. Can defer addition of `ContinuationToken` and `Rehydration` methods until the convenience layer is added, but this is not recommended.
