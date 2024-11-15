@@ -19,12 +19,12 @@ The following description is intended to be independent of the programming langu
 
 ### 1. User starts the LRO
 
-The user asks client to initiate the LRO through some means.  When doing so, the user can specify the following:
+The user asks the client to initiate the LRO through some means.  When doing so, the user can specify the following:
 
 1. The desire to be notified once the LRO has completed
 2. The desire to be notified once the LRO has started and obtain a type instance that enables more granular visibility and control over interaction with the service operation
 
-In .NET, users call service methods on the client to achieve this.  The details of this service method are outlined below.
+In .NET, users call service methods on the client to achieve this.  The details of the service method pattern are outlined below.
 
 ### 2. Client sends initial request to the service
 
@@ -36,7 +36,7 @@ In .NET, the clients creates a message and sends it via the client pipeline.  Th
 
 In response to the client request, the service sends a response containing values that in some way indicate the operation has started.
 
-It may be fully specified in the service API how the client can send subsequent requests for updates regarding the status of the operation and whether the operation has completed.  
+The service API may fully specify how the client should send requests for updates regarding the status of the operation and whether the operation has completed.  
 Alternatively, the service's initial response may contain values that tell the client how to make these subseqent requests.
 The service response may optionally indicate to the client that the operation has already completed.
 
