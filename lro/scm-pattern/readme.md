@@ -6,7 +6,7 @@ A long-running operation (LRO) is an operation that a cloud *service* executes a
 
 See [Azure API Guidelines | Long-Running Operations & Jobs](https://github.com/microsoft/api-guidelines/blob/vNext/azure/Guidelines.md#long-running-operations--jobs) for further details.
 
-From a *client* perspective, a client pattern for LROs must support these steps:
+From a *client* perspective, a client pattern for LROs must support the steps:
 
 1. The client initiates the operation on the service
 1. The client polls the service to track the progress of the operation
@@ -22,10 +22,10 @@ The `System.ClientModel`-based client pattern for long-running operations in .NE
 
 1. Service methods on the client used to initiate the LRO
 1. A base abstraction [OperationResult](https://learn.microsoft.com/en-us/dotnet/api/system.clientmodel.primitives.operationresult?view=azure-dotnet)
-1. A type derived from `OperationResult`, implemented as a public type in the client assembly (the *_LRO subclient_*)
+1. A type derived from `OperationResult`, implemented as a public type in the client assembly (the *LRO subclient*)
 
 <details>
-<summary><h3><b> C# usage samples </b></h3></summary>
+<summary><h3><b> Usage samples </b></h3></summary>
 
 <details>
 <summary><h4><b> 1. Start LRO, return when completed </b></h4></summary>
