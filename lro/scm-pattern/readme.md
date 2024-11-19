@@ -24,22 +24,60 @@ The `System.ClientModel`-based client pattern for long-running operations in .NE
 1. A base abstraction [OperationResult](https://learn.microsoft.com/en-us/dotnet/api/system.clientmodel.primitives.operationresult?view=azure-dotnet)
 1. A type derived from `OperationResult`, implemented as a public type in the client assembly (the *_LRO subclient_*)
 
-### C# code samples
+### C# usage samples
 
 <details>
 <summary><h3><b> 1. Start LRO, return when completed </b></h3></summary>
 
+```csharp
+VectorStore vectorStore = client.CreateVectorStore(waitUntilCompleted: true).Value;
+```
+
+</details>
+
 <details>
 <summary><h3><b> 2. Start LRO, wait for completion via LRO subclient </b></h3></summary>
+
+```csharp
+CreateVectorStoreOperation createOperation = client.CreateVectorStore(waitUntilCompleted: false);
+createOperation.WaitForCompletion();
+VectorStore vectorStore = createOperation.Value;
+```
+
+</details>
 
 <details>
 <summary><h3><b> 3. Start LRO, wait for completion using custom polling interval </b></h3></summary>
 
+```csharp
+CreateVectorStoreOperation createOperation = client.CreateVectorStore(waitUntilCompleted: false);
+createOperation.WaitForCompletion(pollingInterval: TimeSpan.FromSeconds(2));
+VectorStore vectorStore = createOperation.Value;
+```
+
+</details>
+
 <details>
 <summary><h3><b> 4. Start LRO, manually poll for updates (advanced) </b></h3></summary>
+
+```csharp
+CreateVectorStoreOperation createOperation = client.CreateVectorStore(waitUntilCompleted: false);
+while (!createOperation.HasCompleted)
+{
+    await Task.Delay(2000);
+    createOperation.UpdateStatus();
+}
+VectorStore vectorStore = createOperation.Value;
+```
+
+</details>
 
 <details>
 <summary><h3><b> 5. Start LRO, view HTTP response details (advanced) </b></h3></summary>
 
+</details>
+
 <details>
 <summary><h3><b> 6. Start LRO, wait for completion from a different process ("Rehydrate") (advanced) </b></h3></summary>
+
+</details>
