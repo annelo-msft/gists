@@ -391,4 +391,6 @@ Based on the details of the service operation and customer needs from the client
 1. Provide an overload of the `WaitForCompletion` method that takes a custom polling interval or alternate polling strategy
 1. Override the virtual `WaitForCompletion` method if needed for a specific service implementation
 
-Many details of the SCM-based LRO subclient are consistent with those described for Azure clients in the [.NET Azure SDK Guidelines on Subclients](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-subclients).
+### Further reading
+
+For a higher-level discussion of this client pattern, see [System.ClientModel-based client pattern for LROs](https://gist.github.com/annelo-msft/bba35dde939e50370b76163d1da35593).
