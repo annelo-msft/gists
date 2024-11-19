@@ -328,10 +328,8 @@ public partial class CreateVectorStoreOperation : OperationResult
 
     internal virtual async Task<ClientResult<VectorStore>> GetVectorStoreAsync(CancellationToken cancellationToken = default)
     {
-        ClientResult result
-            = await GetVectorStoreAsync(cancellationToken.ToRequestOptions()).ConfigureAwait(false);
-        return ClientResult.FromValue(
-            VectorStore.FromResponse(result.GetRawResponse()), result.GetRawResponse());
+        ClientResult result = await GetVectorStoreAsync(cancellationToken.ToRequestOptions()).ConfigureAwait(false);
+        return ClientResult.FromValue(VectorStore.FromResponse(result.GetRawResponse()), result.GetRawResponse());
     }
 
     internal virtual ClientResult<VectorStore> GetVectorStore(CancellationToken cancellationToken = default)
@@ -339,10 +337,28 @@ public partial class CreateVectorStoreOperation : OperationResult
         ClientResult result = GetVectorStore(cancellationToken.ToRequestOptions());
         return ClientResult.FromValue(VectorStore.FromResponse(result.GetRawResponse()), result.GetRawResponse());
     }
+
+    internal virtual async Task<ClientResult> GetVectorStoreAsync(RequestOptions? options)
+    {
+        using PipelineMessage message = CreateGetVectorStoreRequest(_vectorStoreId, options);
+        return ClientResult.FromResponse(await _pipeline.ProcessMessageAsync(message, options).ConfigureAwait(false));
+    }
+
+    internal virtual ClientResult GetVectorStore(RequestOptions? options)
+    {
+        using PipelineMessage message = CreateGetVectorStoreRequest(_vectorStoreId, options);
+        return ClientResult.FromResponse(_pipeline.ProcessMessage(message, options));
+    }
 }
 
 ```
 
+</details>
+
 <details>
+<summary><h4><b> OperationResult </b></h4></summary>
+See [OperationResult.cs](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/System.ClientModel/src/Convenience/OperationResult.cs)
+
+</details>
 
 </details>
