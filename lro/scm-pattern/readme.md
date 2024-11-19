@@ -12,14 +12,34 @@ From a *client* perspective, a client pattern for LROs must support these steps:
 1. The client polls the service to track the progress of the operation
 1. The client indicates to its user that the operation is complete and any computed results can be obtained
 
+### Messages sent between client and service
+
+![image](https://gist.github.com/user-attachments/assets/fcf2cdb9-2f4d-4be4-ae21-fddc99cac566)
+
 ## SCM-based client pattern
 
 The `System.ClientModel`-based client pattern for long-running operations in .NET clients consists of three elements:
 
-1. The base abstraction type `OperationResult`
-2. The LRO subclient implemented as a public type in the client assembly
-3. The service methods the client exposes to initiate the LRO
+1. Service methods on the client used to initiate the LRO
+1. A base abstraction [OperationResult](https://learn.microsoft.com/en-us/dotnet/api/system.clientmodel.primitives.operationresult?view=azure-dotnet)
+1. A type derived from `OperationResult`, implemented as a public type in the client assembly (the *_LRO subclient_*)
 
-Before moving to the details of this pattern, consider the following illustration.
+### C# code samples
 
-![image](https://gist.github.com/user-attachments/assets/fcf2cdb9-2f4d-4be4-ae21-fddc99cac566)
+<details>
+<summary><h3><b> 1. Start LRO, return when completed </b></h3></summary>
+
+<details>
+<summary><h3><b> 2. Start LRO, wait for completion via LRO subclient </b></h3></summary>
+
+<details>
+<summary><h3><b> 3. Start LRO, wait for completion using custom polling interval </b></h3></summary>
+
+<details>
+<summary><h3><b> 4. Start LRO, manually poll for updates (advanced) </b></h3></summary>
+
+<details>
+<summary><h3><b> 5. Start LRO, view HTTP response details (advanced) </b></h3></summary>
+
+<details>
+<summary><h3><b> 6. Start LRO, wait for completion from a different process ("Rehydrate") (advanced) </b></h3></summary>
