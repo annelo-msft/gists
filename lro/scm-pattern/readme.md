@@ -24,10 +24,8 @@ The `System.ClientModel`-based client pattern for long-running operations in .NE
 1. A base abstraction [OperationResult](https://learn.microsoft.com/en-us/dotnet/api/system.clientmodel.primitives.operationresult?view=azure-dotnet)
 1. A type derived from `OperationResult`, implemented as a public type in the client assembly (the *_LRO subclient_*)
 
-### C# usage samples
-
 <details>
-<summary><h3><b> Samples </b></h3></summary>
+<summary><h3><b> C# usage samples </b></h3></summary>
 
 <details>
 <summary><h4><b> 1. Start LRO, return when completed </b></h4></summary>
@@ -120,13 +118,16 @@ VectorStore vectorStore = createOperation.Value;
 
 </details>
 
-### Client APIs
+<details>
+<summary><h3><b> Client APIs </b></h3></summary>
 
 <details>
-<summary><h3><b> Client service methods </b></h3></summary>
+<summary><h4><b> Client service methods </b></h4></summary>
 
 ```csharp
 public class VectorStoreClient {
+    // ...
+
     // Convenience methods    
     public virtual Task<CreateVectorStoreOperation> CreateVectorStoreAsync(bool waitUntilCompleted, VectorStoreCreationOptions vectorStore = null, CancellationToken cancellationToken = default);
     public virtual CreateVectorStoreOperation CreateVectorStore(bool waitUntilCompleted, VectorStoreCreationOptions vectorStore = null, CancellationToken cancellationToken = default);
@@ -134,13 +135,15 @@ public class VectorStoreClient {
     // Protocol methods
     public virtual Task<CreateVectorStoreOperation> CreateVectorStoreAsync(BinaryContent content, bool waitUntilCompleted, RequestOptions options = null);
     public virtual CreateVectorStoreOperation CreateVectorStore(BinaryContent content, bool waitUntilCompleted, RequestOptions options = null);
+
+    // ...
 }
 ```
 
 </details>
 
 <details>
-<summary><h3><b> OperationResult APIs </b></h3></summary>
+<summary><h4><b> OperationResult APIs </b></h4></summary>
 
 ```csharp
 public abstract partial class OperationResult
@@ -172,5 +175,7 @@ public class CreateVectorStoreOperation : OperationResult {
     public override ValueTask<ClientResult> UpdateStatusAsync(RequestOptions? options = null);
 }
 ```
+
+</details>
 
 </details>
