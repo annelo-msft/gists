@@ -120,8 +120,12 @@ VectorStore vectorStore = createOperation.Value;
 <details>
 <summary><h3><b> Client APIs </b></h3></summary>
 
+The sections below illustrate an example implementation for the OpenAI LRO to create a vector store.  These samples are based on the implementation in the .NET OpenAI library (see: [CreateVectorStoreOperation.cs](https://github.com/openai/openai-dotnet/blob/main/src/Custom/VectorStores/CreateVectorStoreOperation.cs) and related types for specifics of current implementation details).
+
 <details>
 <summary><h4><b> Client service methods </b></h4></summary>
+
+The `VectorStoreClient` provides service methods to start the LRO.  Usage samples to call these APIs are provided in the preceding section.
 
 ```csharp
 public class VectorStoreClient {
@@ -144,6 +148,8 @@ public class VectorStoreClient {
 <details>
 <summary><h4><b> OperationResult APIs </b></h4></summary>
 
+The `OperationResult` base abstraction is provided in the `System.ClientModel` library.  It has an abstract `UpdateStatus` method that derived types must implement.  Its `WaitForCompletion` method calls `UpdateStatus` internally, at a default polling interval.
+
 ```csharp
 public abstract partial class OperationResult
 {
@@ -164,6 +170,8 @@ public abstract partial class OperationResult
 <details>
 <summary><h4><b> LRO subclient APIs </b></h4></summary>
 
+The `CreateVectorStoreOperation` class is dervied from SCM `OperationResult`.  It implements the abstract members `UpdateStatus` and `RehydrationToken`.  The implementation of `UpdateStatus` calls through to internal generated service methods to obtain the status of the operation, and sets `HasCompleted` to `true` once the operation has completed.
+
 ```csharp
 public class CreateVectorStoreOperation : OperationResult {
     public override ContinuationToken? RehydrationToken { get; protected set; }
@@ -183,6 +191,8 @@ public class CreateVectorStoreOperation : OperationResult {
 
 <details>
 <summary><h4><b> CreateVectorStoreOperation </b></h4></summary>
+
+The following is an example implementation of `CreateVectorStoreOperation`, whose public APIs were detailed in a prior section.
 
 ```csharp
 using System;
@@ -357,7 +367,8 @@ public partial class CreateVectorStoreOperation : OperationResult
 
 <details>
 <summary><h4><b> OperationResult </b></h4></summary>
-See [OperationResult.cs](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/System.ClientModel/src/Convenience/OperationResult.cs)
+
+The base abstraction `OperationResult` is implemented in the `System.ClientModel` library.  See [OperationResult.cs](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/System.ClientModel/src/Convenience/OperationResult.cs) for details.
 
 </details>
 
