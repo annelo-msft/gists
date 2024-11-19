@@ -27,7 +27,7 @@ The `System.ClientModel`-based client pattern for long-running operations in .NE
 ### C# usage samples
 
 <details>
-<summary><h3><b> LRO usage samples </b></h3></summary>
+<summary><h3><b> Samples </b></h3></summary>
 
 <details>
 <summary><h4><b> 1. Start LRO, return when completed </b></h4></summary>
@@ -117,5 +117,60 @@ VectorStore vectorStore = createOperation.Value;
 ```
 
 </details>
+
+</details>
+
+### Client APIs
+
+<details>
+<summary><h3><b> Client service methods </b></h3></summary>
+
+```csharp
+public class VectorStoreClient {
+    // Convenience methods    
+    public virtual Task<CreateVectorStoreOperation> CreateVectorStoreAsync(bool waitUntilCompleted, VectorStoreCreationOptions vectorStore = null, CancellationToken cancellationToken = default);
+    public virtual CreateVectorStoreOperation CreateVectorStore(bool waitUntilCompleted, VectorStoreCreationOptions vectorStore = null, CancellationToken cancellationToken = default);
+
+    // Protocol methods
+    public virtual Task<CreateVectorStoreOperation> CreateVectorStoreAsync(BinaryContent content, bool waitUntilCompleted, RequestOptions options = null);
+    public virtual CreateVectorStoreOperation CreateVectorStore(BinaryContent content, bool waitUntilCompleted, RequestOptions options = null);
+}
+```
+
+</details>
+
+<details>
+<summary><h3><b> OperationResult APIs </b></h3></summary>
+
+```csharp
+public abstract partial class OperationResult
+{
+    protected OperationResult(System.ClientModel.Primitives.PipelineResponse response) { }
+    public bool HasCompleted { get { throw null; } protected set { } }
+    public abstract System.ClientModel.ContinuationToken? RehydrationToken { get; protected set; }
+    public System.ClientModel.Primitives.PipelineResponse GetRawResponse() { throw null; }
+    protected void SetRawResponse(System.ClientModel.Primitives.PipelineResponse response) { }
+    public abstract System.ClientModel.ClientResult UpdateStatus(System.ClientModel.Primitives.RequestOptions? options = null);
+    public abstract System.Threading.Tasks.ValueTask<System.ClientModel.ClientResult> UpdateStatusAsync(System.ClientModel.Primitives.RequestOptions? options = null);
+    public virtual void WaitForCompletion(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { }
+    public virtual System.Threading.Tasks.ValueTask WaitForCompletionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { throw null; }
+}
+```
+
+</details>
+
+<details>
+<summary><h3><b> LRO subclient APIs </b></h3></summary>
+
+```csharp
+public class CreateVectorStoreOperation : OperationResult {
+    public override ContinuationToken? RehydrationToken { get; protected set; }
+    public VectorStore? Value { get; }
+    public static CreateVectorStoreOperation Rehydrate(VectorStoreClient client, ContinuationToken rehydrationToken, CancellationToken cancellationToken = default);
+    public static Task<CreateVectorStoreOperation> RehydrateAsync(VectorStoreClient client, ContinuationToken rehydrationToken, CancellationToken cancellationToken = default);
+    public override ClientResult UpdateStatus(RequestOptions? options = null);
+    public override ValueTask<ClientResult> UpdateStatusAsync(RequestOptions? options = null);
+}
+```
 
 </details>
