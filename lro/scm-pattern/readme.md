@@ -1,5 +1,9 @@
 # System.ClientModel-based client pattern for LROs
 
+`System.ClientModel`-based .NET clients implement long-running operations (LROs) via a base abstraction in the `System.ClientModel` library, public types derived from this abstraction in client libraries, and API patterns for service methods on the client.  
+
+The benefit of having a base abstraction and consistency in client patterns is that users of SCM-based clients can learn the pattern once and use it to work with LROs implemented by any cloud service, without having to understand the specific details of different service APIs.  This can save users time in authoring applications that consume cloud services, and enable engineering efficiencies such as code generation, the ability to build reusable components in layers above the abstraction, and community benefits around readability, extensibilty, and maintainability of open source implementations based on these patterns.
+
 ## LRO definition
 
 A long-running operation (LRO) is an operation that a cloud *service* executes asynchonously.  For HTTP-based services, this means that the service will typically respond to a request to start the operation prior to the completion of the operation.
@@ -125,7 +129,7 @@ The sections below illustrate an example implementation for the OpenAI LRO to cr
 <details>
 <summary><h4><b> Client service methods </b></h4></summary>
 
-The `VectorStoreClient` provides service methods to start the LRO.  Usage samples to call these APIs are provided in the preceding section.
+The `VectorStoreClient` provides service methods to start the LRO.  Usage samples to call these APIs are provided in a prior section.
 
 ```csharp
 public class VectorStoreClient {
@@ -373,3 +377,18 @@ The base abstraction `OperationResult` is implemented in the `System.ClientModel
 </details>
 
 </details>
+
+### Derived type variations
+
+Based on the details of the service operation and customer needs from the client, the implementation of the LRO subclient (the type derived from `OperationResult`) can use one or more of the following pattern variants:
+
+1. Add a `Value` property if the operation computes a result
+1. Add a `Status` property if the operation has statuses other than in-progress and completed
+1. Add other applicable public properties as needed
+1. Add service methods that operate on the service-side LRO itself, e.g. a `Cancel` operation if the service provides it.  If the service exposes a "Get Status"-like operation, this method is not exposed as a public service method on the LRO subclient.  This is because it is functionally equivalent to the `UpdateStatus` method on the base `OperationResult` type.
+1. Add an overload of the `Rehydrate` method taking simple parameters
+1. Throw an exception from the `UpdateStatus` method to indicate that a terminal error was encountered during the execution of the operation
+1. Provide an overload of the `WaitForCompletion` method that takes a custom polling interval or alternate polling strategy
+1. Override the virtual `WaitForCompletion` method if needed for a specific service implementation
+
+Many details of the SCM-based LRO subclient are consistent with those described for Azure clients in the [.NET Azure SDK Guidelines on Subclients](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-subclients).
