@@ -75,9 +75,42 @@ VectorStore vectorStore = createOperation.Value;
 <details>
 <summary><h3><b> 5. Start LRO, view HTTP response details (advanced) </b></h3></summary>
 
+```csharp
+CreateVectorStoreOperation createOperation = client.CreateVectorStore(waitUntilCompleted: false);
+PrintHttpDetauls(createOperation.GetRawResponse());
+while (!createOperation.HasCompleted)
+{
+    await Task.Delay(2000);
+    createOperation.UpdateStatus();
+    PrintHttpDetauls(createOperation.GetRawResponse());
+}
+VectorStore vectorStore = createOperation.Value;
+
+void PrintHttpDetails(PipelineResponse response)
+{
+    Console.WriteLine("Status code: " + response.Status);
+}
+```
+
 </details>
 
 <details>
 <summary><h3><b> 6. Start LRO, wait for completion from a different process ("Rehydrate") (advanced) </b></h3></summary>
+
+From first process:
+
+```csharp
+CreateVectorStoreOperation createOperation = client.CreateVectorStore(waitUntilCompleted: false);
+PersistValue(createOperation.RehydrationToken);
+```
+
+From second process:
+
+```csharp
+ContinuationToken rehydrationToken = ReadPersistedValue(createOperation.RehydrationToken);
+CreateVectorStoreOperation createOperation = CreateVectorStoreOperation(client, rehydrationToken);
+createOperatino.WaitForCompletion();
+VectorStore vectorStore = createOperation.Value;
+```
 
 </details>
