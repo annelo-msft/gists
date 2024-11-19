@@ -27,7 +27,9 @@ The `System.ClientModel`-based client pattern for long-running operations in .NE
 ### C# usage samples
 
 <details>
-<summary><h3><b> 1. Start LRO, return when completed </b></h3></summary>
+
+<details>
+<summary><h4><b> 1. Start LRO, return when completed </b></h4></summary>
 
 ```csharp
 VectorStore vectorStore = client.CreateVectorStore(waitUntilCompleted: true).Value;
@@ -36,7 +38,7 @@ VectorStore vectorStore = client.CreateVectorStore(waitUntilCompleted: true).Val
 </details>
 
 <details>
-<summary><h3><b> 2. Start LRO, wait for completion via LRO subclient </b></h3></summary>
+<summary><h4><b> 2. Start LRO, wait for completion via LRO subclient </b></h4></summary>
 
 ```csharp
 CreateVectorStoreOperation createOperation = client.CreateVectorStore(waitUntilCompleted: false);
@@ -47,7 +49,7 @@ VectorStore vectorStore = createOperation.Value;
 </details>
 
 <details>
-<summary><h3><b> 3. Start LRO, wait for completion using custom polling interval </b></h3></summary>
+<summary><h4><b> 3. Start LRO, wait for completion using custom polling interval </b></h4></summary>
 
 ```csharp
 CreateVectorStoreOperation createOperation = client.CreateVectorStore(waitUntilCompleted: false);
@@ -58,7 +60,7 @@ VectorStore vectorStore = createOperation.Value;
 </details>
 
 <details>
-<summary><h3><b> 4. Start LRO, manually poll for updates (advanced) </b></h3></summary>
+<summary><h4><b> 4. Start LRO, manually poll for updates (advanced) </b></h4></summary>
 
 ```csharp
 CreateVectorStoreOperation createOperation = client.CreateVectorStore(waitUntilCompleted: false);
@@ -73,7 +75,7 @@ VectorStore vectorStore = createOperation.Value;
 </details>
 
 <details>
-<summary><h3><b> 5. Start LRO, view HTTP response details (advanced) </b></h3></summary>
+<summary><h4><b> 5. Start LRO, view HTTP response details (advanced) </b></h4></summary>
 
 ```csharp
 CreateVectorStoreOperation createOperation = client.CreateVectorStore(waitUntilCompleted: false);
@@ -95,7 +97,7 @@ void PrintHttpDetails(PipelineResponse response)
 </details>
 
 <details>
-<summary><h3><b> 6. Start LRO, wait for completion from a different process ("Rehydrate") (advanced) </b></h3></summary>
+<summary><h4><b> 6. Start LRO, wait for completion from a different process ("Rehydrate") (advanced) </b></h4></summary>
 
 From first process:
 
@@ -112,5 +114,7 @@ CreateVectorStoreOperation createOperation = CreateVectorStoreOperation(client, 
 createOperatino.WaitForCompletion();
 VectorStore vectorStore = createOperation.Value;
 ```
+
+</details>
 
 </details>
