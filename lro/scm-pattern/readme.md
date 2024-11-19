@@ -78,12 +78,12 @@ VectorStore vectorStore = createOperation.Value;
 
 ```csharp
 CreateVectorStoreOperation createOperation = client.CreateVectorStore(waitUntilCompleted: false);
-PrintHttpDetauls(createOperation.GetRawResponse());
+PrintHttpDetails(createOperation.GetRawResponse());
 while (!createOperation.HasCompleted)
 {
     await Task.Delay(2000);
     createOperation.UpdateStatus();
-    PrintHttpDetauls(createOperation.GetRawResponse());
+    PrintHttpDetails(createOperation.GetRawResponse());
 }
 VectorStore vectorStore = createOperation.Value;
 
@@ -163,7 +163,7 @@ public abstract partial class OperationResult
 </details>
 
 <details>
-<summary><h3><b> LRO subclient APIs </b></h3></summary>
+<summary><h4><b> LRO subclient APIs </b></h4></summary>
 
 ```csharp
 public class CreateVectorStoreOperation : OperationResult {
