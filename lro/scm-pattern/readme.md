@@ -27,6 +27,7 @@ The `System.ClientModel`-based client pattern for long-running operations in .NE
 ### C# usage samples
 
 <details>
+<summary><h3><b> LRO usage samples </b></h3></summary>
 
 <details>
 <summary><h4><b> 1. Start LRO, return when completed </b></h4></summary>
