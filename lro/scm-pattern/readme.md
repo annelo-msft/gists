@@ -114,7 +114,7 @@ PersistValue(createOperation.RehydrationToken);
 From second process:
 
 ```csharp
-ContinuationToken rehydrationToken = ReadPersistedValue(createOperation.RehydrationToken);
+ContinuationToken rehydrationToken = ReadPersistedValue();
 CreateVectorStoreOperation createOperation = CreateVectorStoreOperation(client, rehydrationToken);
 createOperation.WaitForCompletion();
 VectorStore vectorStore = createOperation.Value;
