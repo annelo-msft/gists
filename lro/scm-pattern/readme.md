@@ -1,8 +1,12 @@
 # System.ClientModel-based client pattern for LROs
 
-`System.ClientModel`-based .NET clients implement long-running operations (LROs) via a base abstraction in the `System.ClientModel` library, public types derived from this abstraction in client libraries, and API patterns for service methods on the client.  
+`System.ClientModel`-based .NET clients implement long-running operations (LROs) via:
 
-The benefit of having a base abstraction and consistency in client patterns is that users of SCM-based clients can learn the pattern once and use it to work with LROs implemented by any cloud service, without having to understand the specific details of different service APIs.  This can save users time in authoring applications that consume cloud services, and enable engineering efficiencies such as code generation, the ability to build reusable components in layers above the abstraction, and community benefits around readability, extensibilty, and maintainability of open source implementations based on these patterns.
+1. Consistent API patterns for client service methods
+1. A base abstraction in the `System.ClientModel` library
+1. Consistent API patterns for client types derived from the base abstraction
+
+The benefit of having a base abstraction and consistency in client patterns is that users of SCM-based clients can learn the pattern once and use it to work with long-running operations on cloud service, without having to understand the specific details of different service APIs.  This can save users time in authoring applications that consume cloud services, and enable engineering efficiencies such as code generation, the ability to build reusable components in layers above the abstraction, and community benefits around readability, extensibilty, and maintainability of open source implementations based on these patterns.
 
 ## LRO definition
 
